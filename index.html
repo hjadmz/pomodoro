@@ -452,6 +452,7 @@
         let timeLeft = settings.focusTime * 60;
         let currentCycle = 0;
         let timerId = null;
+        let completedCycles = 0;
 
         // DOM Elements
         const timeDisplay = document.getElementById('timeDisplay');
@@ -605,14 +606,14 @@
 
             const totalTime = mode === 'focus' ? 
                 settings.focusTime * 60 : 
-                (currentCycle === 0 && settings.trackCycles ? settings.longBreak : settings.breakTime) * 60;
+                (completedCycles === settings.cyclesBeforeLongBreak ? settings.longBreak : settings.breakTime) * 60;
             
             const progress = ((totalTime - timeLeft) / totalTime) * 100;
             setProgress(progress);
         }
 
         function updateModeButtons() {
-            const breakTime = currentCycle === 0 && settings.trackCycles ? 
+            const breakTime = completedCycles === settings.cyclesBeforeLongBreak && settings.trackCycles ? 
                 settings.longBreak : settings.breakTime;
             focusButton.textContent = `Focus ${formatTimeForButtons(settings.focusTime)}`;
             breakButton.textContent = `Break ${formatTimeForButtons(breakTime)}`;
@@ -625,23 +626,30 @@
             } else {
                 clearInterval(timerId);
                 
-                // Switch modes and continue running
                 if (mode === 'focus') {
                     mode = 'break';
                     if (settings.trackCycles) {
+                        completedCycles++;
                         currentCycle = (currentCycle + 1) % settings.cyclesBeforeLongBreak;
                     }
-                    const breakDuration = (currentCycle === 0 && settings.trackCycles) ? 
-                        settings.longBreak : settings.breakTime;
+                    
+                    // Determine break duration
+                    const isLongBreak = settings.trackCycles && completedCycles === settings.cyclesBeforeLongBreak;
+                    const breakDuration = isLongBreak ? settings.longBreak : settings.breakTime;
                     timeLeft = breakDuration * 60;
                     
                     sendNotification(
                         'Break Time',
-                        `Great work! Time to take a break for ${formatTimeForNotification(breakDuration)}.`
+                        `Great work! Time to take a ${isLongBreak ? 'long ' : ''}break for ${formatTimeForNotification(breakDuration)}.`
                     );
                 } else {
                     mode = 'focus';
                     timeLeft = settings.focusTime * 60;
+                    
+                    // Reset completed cycles after a long break
+                    if (settings.trackCycles && completedCycles === settings.cyclesBeforeLongBreak) {
+                        completedCycles = 0;
+                    }
                     
                     sendNotification(
                         'Focus Time',
@@ -684,8 +692,9 @@
         breakButton.addEventListener('click', () => {
             if (mode !== 'break') {
                 mode = 'break';
-                timeLeft = (currentCycle === 0 && settings.trackCycles) ? 
-                    settings.longBreak * 60 : settings.breakTime * 60;
+                const breakDuration = completedCycles === settings.cyclesBeforeLongBreak && settings.trackCycles ? 
+                    settings.longBreak : settings.breakTime;
+                timeLeft = breakDuration * 60;
                 focusButton.classList.remove('active');
                 breakButton.classList.add('active');
                 updateDisplay();
@@ -769,8 +778,9 @@
                 if (mode === 'focus') {
                     timeLeft = settings.focusTime * 60;
                 } else {
-                    timeLeft = (currentCycle === 0 && settings.trackCycles) ? 
-                        settings.longBreak * 60 : settings.breakTime * 60;
+                    const breakDuration = completedCycles === settings.cyclesBeforeLongBreak && settings.trackCycles ? 
+                        settings.longBreak : settings.breakTime;
+                    timeLeft = breakDuration * 60;
                 }
 
                 updateDisplay();
