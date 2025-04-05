@@ -506,6 +506,7 @@
     let mode = 'focus';
     let timeLeft = settings.focusTime * 60;
     let currentCycle = 0;
+    let focusSessionsCompleted = 0;
     let timerId = null;
 
     // DOM Elements
@@ -546,7 +547,6 @@
         }, duration);
     }
 
-    // Format time for buttons (1 m, 5 m, 1 h)
     function formatTimeForButtons(minutes) {
         if (minutes >= 60) {
             return "1 h";
@@ -554,7 +554,6 @@
         return `${minutes} m`;
     }
 
-    // Format time for notifications (1 minute, 5 minutes, 1 hour)
     function formatTimeForNotification(minutes) {
         if (minutes >= 60) {
             return "1 hour";
@@ -562,7 +561,6 @@
         return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
     }
 
-    // Enhanced Notification Functions
     async function checkNotificationSupport() {
         if (!('Notification' in window)) {
             notificationStatus.textContent = 'This browser does not support desktop notifications';
@@ -668,8 +666,7 @@
         timeDisplay.textContent = formatTime(timeLeft);
         
         if (settings.trackCycles) {
-            const displayCycle = (currentCycle % settings.cyclesBeforeLongBreak) + 1;
-            cycleDisplay.textContent = `Cycle ${displayCycle}/${settings.cyclesBeforeLongBreak}`;
+            cycleDisplay.textContent = `Cycle ${focusSessionsCompleted + 1}/${settings.cyclesBeforeLongBreak}`;
             cycleDisplay.style.display = 'block';
         } else {
             cycleDisplay.style.display = 'none';
@@ -677,7 +674,7 @@
 
         const totalTime = mode === 'focus' ? 
             settings.focusTime * 60 : 
-            (currentCycle > 0 && currentCycle % settings.cyclesBeforeLongBreak === 0 ? 
+            (focusSessionsCompleted > 0 && focusSessionsCompleted % settings.cyclesBeforeLongBreak === 0 ? 
                 settings.longBreak : settings.breakTime) * 60;
         
         const progress = ((totalTime - timeLeft) / totalTime) * 100;
@@ -685,13 +682,14 @@
     }
 
     function updateModeButtons() {
-        const breakTime = currentCycle > 0 && currentCycle % settings.cyclesBeforeLongBreak === 0 && settings.trackCycles ? 
-            settings.longBreak : settings.breakTime;
+        const breakTime = focusSessionsCompleted > 0 && 
+            focusSessionsCompleted % settings.cyclesBeforeLongBreak === 0 && 
+            settings.trackCycles ? settings.longBreak : settings.breakTime;
+        
         focusButton.textContent = `Focus ${formatTimeForButtons(settings.focusTime)}`;
         breakButton.textContent = `Break ${formatTimeForButtons(breakTime)}`;
     }
 
-    // Fixed timerTick function with correct cycle logic
     function timerTick() {
         if (timeLeft > 0) {
             timeLeft--;
@@ -700,15 +698,14 @@
             clearInterval(timerId);
             
             if (mode === 'focus') {
+                // Increment focus sessions completed after a focus session
+                focusSessionsCompleted++;
                 mode = 'break';
-                // Only increment cycle count after completing a focus session
-                if (settings.trackCycles) {
-                    currentCycle++;
-                }
                 
                 // Determine if it's time for a long break
                 const isLongBreak = settings.trackCycles && 
-                    currentCycle > 0 && currentCycle % settings.cyclesBeforeLongBreak === 0;
+                    focusSessionsCompleted > 0 && 
+                    focusSessionsCompleted % settings.cyclesBeforeLongBreak === 0;
                 
                 timeLeft = isLongBreak ? 
                     settings.longBreak * 60 : 
@@ -720,6 +717,11 @@
                         formatTimeForNotification(isLongBreak ? settings.longBreak : settings.breakTime)
                     }.`
                 );
+
+                // Reset cycles if we've completed all of them
+                if (isLongBreak) {
+                    currentCycle = 0;
+                }
             } else {
                 mode = 'focus';
                 timeLeft = settings.focusTime * 60;
@@ -740,7 +742,6 @@
         }
     }
 
-    // Event Listeners
     toggleButton.addEventListener('click', () => {
         isRunning = !isRunning;
         updatePlayPauseIcon();
@@ -765,8 +766,8 @@
     breakButton.addEventListener('click', () => {
         if (mode !== 'break') {
             mode = 'break';
-            const isLongBreak = currentCycle > 0 && 
-                currentCycle % settings.cyclesBeforeLongBreak === 0 && 
+            const isLongBreak = focusSessionsCompleted > 0 && 
+                focusSessionsCompleted % settings.cyclesBeforeLongBreak === 0 && 
                 settings.trackCycles;
             timeLeft = isLongBreak ? settings.longBreak * 60 : settings.breakTime * 60;
             focusButton.classList.remove('active');
@@ -851,13 +852,14 @@
             settings.enableNotifications = document.getElementById('enableNotifications').checked;
             settings.cyclesBeforeLongBreak = parseInt(document.getElementById('cyclesBeforeLongBreak').value);
 
+            // Reset cycles if settings change
+            focusSessionsCompleted = 0;
+            currentCycle = 0;
+
             if (mode === 'focus') {
                 timeLeft = settings.focusTime * 60;
             } else {
-                const isLongBreak = currentCycle > 0 && 
-                    currentCycle % settings.cyclesBeforeLongBreak === 0 && 
-                    settings.trackCycles;
-                timeLeft = isLongBreak ? settings.longBreak * 60 : settings.breakTime * 60;
+                timeLeft = settings.breakTime * 60;
             }
 
             updateDisplay();
@@ -868,6 +870,15 @@
     });
 
     // Initialize
+    function setupNotifications() {
+        if (isMobileDevice()) {
+            notificationSetting.style.display = 'none';
+        } else {
+            notificationSetting.classList.add('visible');
+            checkNotificationSupport();
+        }
+    }
+
     setupNotifications();
     updateDisplay();
     updateModeButtons();
