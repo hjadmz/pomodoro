@@ -433,8 +433,8 @@
       }
   </style>
 </head>
-
-      <div class="container">
+<body>
+  <div class="container">
       <div class="mode-buttons">
           <button class="mode-button active" data-mode="focus">Focus</button>
           <button class="mode-button" data-mode="short">Short Break</button>
@@ -531,7 +531,8 @@
       </div>
   </div>
 
-          // DOM Elements
+  <script>
+      // DOM Elements
       const modeButtons = document.querySelectorAll('.mode-button');
       const startButton = document.getElementById('startButton');
       const resetButton = document.getElementById('resetButton');
@@ -832,7 +833,7 @@
 
           try {
               const notification = new Notification(title, {
-                  body: body,
+                                body: body,
                   icon: settings.notificationIcon,
                   badge: settings.notificationIcon,
                   silent: false,
