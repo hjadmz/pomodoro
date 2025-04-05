@@ -861,6 +861,91 @@
           });
       });
 
+// Enhanced Notification Functions
+async function checkNotificationSupport() {
+    if (!('Notification' in window)) {
+        alert('This browser does not support desktop notifications');
+        return false;
+    }
+    return true;
+}
+
+async function requestNotificationPermission() {
+    if (!await checkNotificationSupport()) return false;
+
+    try {
+        // Show a user-friendly prompt before requesting system permission
+        if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+            const userConsent = confirm(
+                "Would you like to receive notifications when your timer completes? " +
+                "This will help you stay on track with your focus sessions and breaks."
+            );
+            
+            if (!userConsent) {
+                return false;
+            }
+        }
+
+        const permission = await Notification.requestPermission();
+        
+        if (permission === 'granted') {
+            // Send a test notification
+            new Notification("Pomodoro Timer", {
+                body: "Notifications are now enabled! You'll be notified when your sessions end.",
+                icon: settings.notificationIcon
+            });
+            return true;
+        } else {
+            notificationCheckbox.checked = false;
+            settings.enableNotifications = false;
+            if (permission === 'denied') {
+                alert('Notifications are blocked. Please enable them in your browser settings to use this feature.');
+            }
+            return false;
+        }
+    } catch (error) {
+        console.error('Error requesting notification permission:', error);
+        alert('There was an error setting up notifications. Please try again.');
+        notificationCheckbox.checked = false;
+        settings.enableNotifications = false;
+        return false;
+    }
+}
+
+async function setupNotifications() {
+    // Always hide notifications on mobile
+    if (isMobileDevice()) {
+        notificationSetting.classList.remove('visible');
+        settings.enableNotifications = false;
+        return;
+    }
+
+    // Check notification support for desktop
+    if (!await checkNotificationSupport()) {
+        notificationSetting.classList.remove('visible');
+        return;
+    }
+
+    // Show notification settings for desktop with support
+    notificationSetting.classList.add('visible');
+    
+    // If permission is already granted, check the box
+    if (Notification.permission === 'granted') {
+        notificationCheckbox.checked = settings.enableNotifications;
+    } else {
+        // If permission isn't granted yet, uncheck the box
+        notificationCheckbox.checked = false;
+        settings.enableNotifications = false;
+        
+        // If this is the first visit, proactively ask for permission
+        if (Notification.permission === "default") {
+            requestNotificationPermission();
+        }
+    }
+}
+
+
+
       startButton.addEventListener('click', toggleTimer);
       resetButton.addEventListener('click', resetTimer);
       settingsButton.addEventListener('click', () => {
