@@ -3,31 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#111827" media="(prefers-color-scheme: dark)">
     <title>Pomodoro Timer</title>
 </head>
 <body>
     <div class="container">
-        <div class="mode-buttons">
-            <button id="focusButton" class="mode-button active">Focus 25 m</button>
-            <button id="breakButton" class="mode-button">Break 5 m</button>
-        </div>
-
-        <div class="timer-display">
-            <div class="timer-circle">
-                <svg class="progress-ring" width="100%" height="100%" viewBox="0 0 100 100">
-                    <circle class="progress-ring__circle" cx="50" cy="50" r="45"/>
-                    <circle class="progress-ring__path" cx="50" cy="50" r="45"/>
-                </svg>
-                <div class="timer-content">
-                    <div class="time" id="timeDisplay">25:00</div>
-                    <div class="cycle-count" id="cycleDisplay">Cycle 0/4</div>
-                </div>
+        <div class="timer-container">
+            <svg class="progress-ring" width="120" height="120">
+                <circle class="progress-ring__circle" stroke="#e6e6e6" stroke-width="8" fill="transparent" r="45" cx="60" cy="60"/>
+                <circle class="progress-ring__path" stroke="#4F46E5" stroke-width="8" fill="transparent" r="45" cx="60" cy="60"/>
+            </svg>
+            <div class="timer-display">
+                <span id="timeDisplay">25:00</span>
+                <span id="cycleDisplay">Cycle 0/4</span>
             </div>
         </div>
 
-        <div class="control-buttons">
+        <div class="controls">
+            <button id="focusButton" class="mode-button active">Focus 25m</button>
             <button id="toggleButton" class="control-button">
                 <svg class="play-icon" viewBox="0 0 24 24" width="24" height="24">
                     <path fill="currentColor" d="M8 5v14l11-7z"/>
@@ -36,65 +28,67 @@
                     <path fill="currentColor" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
                 </svg>
             </button>
-            <button id="settingsButton" class="control-button">
-                <svg viewBox="0 0 24 24" width="24" height="24">
-                    <path fill="currentColor" d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5zm7.43-2.53c.04-.32.07-.64.07-.97 0-.33-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65A.488.488 0 0 0 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98 0 .33.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65z"/>
-                </svg>
-            </button>
+            <button id="breakButton" class="mode-button">Break 5m</button>
         </div>
+
+        <button id="settingsButton" class="settings-button">
+            <svg viewBox="0 0 24 24" width="24" height="24">
+                <path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+            </svg>
+        </button>
     </div>
 
     <div id="settingsModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title">Settings</h2>
-                <button class="close-modal">
-                    <svg viewBox="0 0 24 24" width="24" height="24">
-                        <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                    </svg>
-                </button>
+                <h2>Settings</h2>
+                <button class="close-modal">&times;</button>
             </div>
-
-            <div class="setting-group">
-                <label for="focusTime">Focus Time (minutes)</label>
-                <input type="number" id="focusTime" min="1" max="60" value="25">
-                <div class="error-message" id="focusTime-error"></div>
-            </div>
-
-            <div class="setting-group">
-                <label for="breakTime">Break Time (minutes)</label>
-                <input type="number" id="breakTime" min="1" max="60" value="5">
-                <div class="error-message" id="breakTime-error"></div>
-            </div>
-
-            <div class="setting-group notification-setting">
-                <div class="checkbox-group">
-                    <input type="checkbox" id="enableNotifications">
-                    <label for="enableNotifications">Enable Notifications</label>
-                </div>
-                <div class="notification-status" id="notificationStatus"></div>
-            </div>
-
-            <div class="setting-group checkbox-group">
-                <input type="checkbox" id="trackCycles">
-                <label for="trackCycles">Track Cycles</label>
-            </div>
-
-            <div id="cycleSettings" class="disabled">
+            <div class="modal-body">
                 <div class="setting-group">
-                    <label for="cyclesBeforeLongBreak">Cycles Before Long Break</label>
-                    <input type="number" id="cyclesBeforeLongBreak" min="1" max="10" value="4">
-                    <div class="error-message" id="cyclesBeforeLongBreak-error"></div>
+                    <label for="focusTime">Focus Time (minutes)</label>
+                    <input type="number" id="focusTime" min="1" max="60" value="25">
+                    <span id="focusTime-error" class="error-message"></span>
                 </div>
 
                 <div class="setting-group">
-                    <label for="longBreak">Long Break Time (minutes)</label>
-                    <input type="number" id="longBreak" min="1" max="60" value="15">
-                    <div class="error-message" id="longBreak-error"></div>
+                    <label for="breakTime">Break Time (minutes)</label>
+                    <input type="number" id="breakTime" min="1" max="30" value="5">
+                    <span id="breakTime-error" class="error-message"></span>
+                </div>
+
+                <div class="setting-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="trackCycles">
+                        Track Cycles
+                    </label>
+                </div>
+
+                <div id="cycleSettings">
+                    <div class="setting-group">
+                        <label for="cyclesBeforeLongBreak">Cycles Before Long Break</label>
+                        <input type="number" id="cyclesBeforeLongBreak" min="2" max="8" value="4">
+                        <span id="cyclesBeforeLongBreak-error" class="error-message"></span>
+                    </div>
+
+                    <div class="setting-group">
+                        <label for="longBreak">Long Break Time (minutes)</label>
+                        <input type="number" id="longBreak" min="5" max="60" value="15">
+                        <span id="longBreak-error" class="error-message"></span>
+                    </div>
+                </div>
+
+                <div class="setting-group notification-setting">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="enableNotifications">
+                        Enable Notifications
+                    </label>
+                    <span id="notificationStatus" class="notification-status"></span>
                 </div>
             </div>
-
-            <button class="save-button">Save Settings</button>
+            <div class="modal-footer">
+                <button class="save-button">Save Settings</button>
+            </div>
         </div>
     </div>
 
@@ -104,28 +98,12 @@
 
 <style>
     :root {
-        --primary-color: #3b82f6;
-        --checkbox-color: #007AFF;
-        --bg-color: #ffffff;
-        --text-color: #1f2937;
-        --secondary-bg: #f3f4f6;
-        --border-color: #e5e7eb;
-        --modal-overlay: rgba(0, 0, 0, 0.5);
-        --ring-bg: #e5e7eb;
-        --focus-ring: rgba(59, 130, 246, 0.25);
-        --error-color: #ef4444;
-        --warning-color: #f59e0b;
-    }
-
-    @media (prefers-color-scheme: dark) {
-        :root {
-            --bg-color: #111827;
-            --text-color: #ffffff;
-            --secondary-bg: #1f2937;
-            --border-color: #374151;
-            --modal-overlay: rgba(0, 0, 0, 0.7);
-            --ring-bg: #374151;
-        }
+        --primary-color: #4F46E5;
+        --secondary-color: #818CF8;
+        --text-color: #1F2937;
+        --background-color: #F3F4F6;
+        --error-color: #EF4444;
+        --success-color: #10B981;
     }
 
     * {
@@ -135,70 +113,47 @@
     }
 
     body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        background-color: var(--bg-color);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background-color: var(--background-color);
         color: var(--text-color);
         min-height: 100vh;
         display: flex;
-        align-items: center;
         justify-content: center;
-        padding: 1rem;
+        align-items: center;
     }
 
     .container {
-        max-width: 480px;
-        width: 100%;
+        background: white;
         padding: 2rem;
-        background-color: var(--secondary-bg);
         border-radius: 1rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        position: relative;
+        width: 100%;
+        max-width: 400px;
+        margin: 1rem;
     }
 
-    .mode-buttons {
-        display: flex;
-        gap: 0.5rem;
-        margin-bottom: 2rem;
+    .timer-container {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 2rem;
     }
 
-    .mode-button {
-        flex: 1;
-        padding: 0.75rem;
-        border: none;
-        border-radius: 0.5rem;
-        background-color: var(--bg-color);
-        color: var(--text-color);
-        cursor: pointer;
-        opacity: 0.7;
-        transition: all 0.2s;
-        font-size: 1rem;
-        min-height: 44px;
+    .progress-ring {
+        transform: rotate(-90deg);
     }
 
-    .mode-button:hover {
-        opacity: 0.9;
+    .progress-ring__circle {
+        transition: stroke-dashoffset 0.1s;
     }
 
-    .mode-button.active {
-        opacity: 1;
-        font-weight: 600;
-        background-color: var(--primary-color);
-        color: white;
+    .progress-ring__path {
+        transition: stroke-dashoffset 0.1s;
     }
 
     .timer-display {
-        text-align: center;
-        margin-bottom: 2rem;
-        position: relative;
-    }
-
-    .timer-circle {
-        position: relative;
-        width: 16rem;
-        height: 16rem;
-        margin: 0 auto;
-    }
-
-    .timer-content {
         position: absolute;
         top: 50%;
         left: 50%;
@@ -207,70 +162,89 @@
         width: 100%;
     }
 
-    .time {
-        font-size: 3.5rem;
+    #timeDisplay {
+        font-size: 1.75rem;
         font-weight: bold;
-        margin-bottom: 0.5rem;
-        line-height: 1;
+        display: block;
     }
 
-    .cycle-count {
+    #cycleDisplay {
         font-size: 0.875rem;
-        opacity: 0.7;
+        color: #6B7280;
+        display: block;
+        margin-top: 0.25rem;
     }
 
-    .progress-ring {
-        transform: rotate(-90deg);
-    }
-
-    .progress-ring__circle {
-        fill: none;
-        stroke: var(--ring-bg);
-        stroke-width: 4;
-    }
-
-    .progress-ring__path {
-        fill: none;
-        stroke: var(--primary-color);
-        stroke-linecap: round;
-        stroke-width: 4;
-        transition: stroke-dashoffset 0.35s;
-    }
-
-    .control-buttons {
+    .controls {
         display: flex;
         justify-content: center;
-        gap: 2rem;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .mode-button {
+        background: transparent;
+        border: 2px solid var(--primary-color);
+        color: var(--primary-color);
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .mode-button.active {
+        background: var(--primary-color);
+        color: white;
     }
 
     .control-button {
-        width: 3.5rem;
-        height: 3.5rem;
-        border-radius: 50%;
+        background: var(--primary-color);
         border: none;
-        background-color: var(--bg-color);
-        color: var(--text-color);
+        color: white;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all 0.2s;
-        min-height: 44px;
     }
 
     .control-button:hover {
-        background-color: var(--border-color);
+        background: var(--secondary-color);
+    }
+
+    .settings-button {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: transparent;
+        border: none;
+        color: #6B7280;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .settings-button:hover {
+        background: #F3F4F6;
     }
 
     .modal {
-        position: fixed;
-        inset: 0;
-        background-color: var(--modal-overlay);
         display: none;
-        align-items: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
         justify-content: center;
-        padding: 1rem;
-        z-index: 50;
+        align-items: center;
+        z-index: 1000;
     }
 
     .modal.visible {
@@ -278,12 +252,13 @@
     }
 
     .modal-content {
-        background-color: var(--bg-color);
+        background: white;
         padding: 2rem;
         border-radius: 1rem;
-        width: 100%;
-        max-width: 28rem;
-        position: relative;
+        width: 90%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
     }
 
     .modal-header {
@@ -293,25 +268,21 @@
         margin-bottom: 1.5rem;
     }
 
-    .modal-title {
+    .modal-header h2 {
         font-size: 1.5rem;
         font-weight: 600;
     }
 
     .close-modal {
-        background: none;
+        background: transparent;
         border: none;
-        color: var(--text-color);
+        font-size: 1.5rem;
         cursor: pointer;
-        padding: 0.5rem;
+        color: #6B7280;
     }
 
     .setting-group {
         margin-bottom: 1.5rem;
-    }
-
-    .setting-group:last-child {
-        margin-bottom: 0;
     }
 
     .setting-group label {
@@ -322,78 +293,33 @@
 
     .setting-group input[type="number"] {
         width: 100%;
-        padding: 0.75rem;
-        border: 1px solid var(--border-color);
+        padding: 0.5rem;
+        border: 1px solid #D1D5DB;
         border-radius: 0.5rem;
-        background-color: var(--bg-color);
-        color: var(--text-color);
         font-size: 1rem;
-        outline: none;
-        transition: all 0.2s ease;
-        min-height: 44px;
     }
 
-    .setting-group input[type="number"]:hover {
-        border-color: var(--primary-color);
-    }
-
-    .setting-group input[type="number"]:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px var(--focus-ring);
-    }
-
-    .setting-group input[type="number"]::-webkit-inner-spin-button,
-    .setting-group input[type="number"]::-webkit-outer-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
-
-    .setting-group input[type="number"] {
-        -moz-appearance: textfield;
-    }
-
-    .checkbox-group {
+    .checkbox-label {
         display: flex;
         align-items: center;
-        gap: 8px;
-        margin: 8px 0;
-        padding: 0.5rem 0;
-    }
-
-    .checkbox-group label {
-        margin: 0;
-        cursor: pointer;
-        font-size: 16px;
-        line-height: 1.5;
-    }
-
-    .checkbox-group input[type="checkbox"] {
-        margin: 0;
-        width: 20px;
-        height: 20px;
-        accent-color: var(--checkbox-color);
+        gap: 0.5rem;
         cursor: pointer;
     }
 
-    .checkbox-group input[type="checkbox"]:disabled {
+    .checkbox-label input[type="checkbox"] {
+        width: 1rem;
+        height: 1rem;
+    }
+
+    #cycleSettings {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #E5E7EB;
+    }
+
+    #cycleSettings.disabled {
         opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    .checkbox-group input[type="checkbox"]:disabled + label {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    .notification-status {
-        font-size: 0.875rem;
-        margin-top: 0.25rem;
-        color: var(--warning-color);
-        display: none;
-    }
-
-    .notification-status.visible {
-        display: block;
+        pointer-events: none;
     }
 
     .error-message {
@@ -407,32 +333,15 @@
         display: block;
     }
 
-    .disabled {
-        opacity: 0.5;
-        pointer-events: none;
+    .notification-status {
+        color: var(--error-color);
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: none;
     }
 
-    .save-button {
-        width: 100%;
-        padding: 0.75rem;
-        background-color: var(--primary-color);
-        color: white;
-        border: none;
-        border-radius: 0.5rem;
-        font-size: 1rem;
-        font-weight: 500;
-        cursor: pointer;
-        margin-top: 1.5rem;
-        min-height: 44px;
-    }
-
-    .save-button:hover {
-        background-color: #2563eb;
-    }
-
-    .save-button:focus {
-        outline: none;
-        box-shadow: 0 0 0 3px var(--focus-ring);
+    .notification-status.visible {
+        display: block;
     }
 
     .notification-setting {
@@ -443,73 +352,58 @@
         display: block;
     }
 
+    .save-button {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        cursor: pointer;
+        width: 100%;
+        transition: all 0.2s;
+    }
+
+    .save-button:hover {
+        background: var(--secondary-color);
+    }
+
     .toast {
         position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background-color: var(--bg-color);
-        color: var(--text-color);
-        padding: 1rem;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1F2937;
+        color: white;
+        padding: 0.75rem 1.5rem;
         border-radius: 0.5rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        display: none;
-        z-index: 1000;
-        max-width: 300px;
-        animation: slideIn 0.3s ease-out;
+        font-size: 0.875rem;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
     }
 
     .toast.visible {
-        display: block;
+        opacity: 1;
     }
 
-    @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-
-    @media (max-width: 480px) {
+    @media (max-width: 640px) {
         .container {
             padding: 1.5rem;
         }
 
-        .timer-circle {
-            width: 12rem;
-            height: 12rem;
+        .controls {
+            flex-direction: column;
+            gap: 0.75rem;
         }
 
-        .time {
-            font-size: 2.5rem;
-        }
-
-        .modal-content {
-            padding: 1.5rem;
+        .mode-button {
+            width: 100%;
         }
     }
 </style>
 
-<script>
-    let settings = {
-        focusTime: 25,
-        breakTime: 5,
-        longBreak: 15,
-        trackCycles: true,
-        cyclesBeforeLongBreak: 4,
-        enableNotifications: false,
-        notificationIcon: 'icon-180.png'
-    };
-
-    let isRunning = false;
-    let mode = 'focus';
-    let timeLeft = settings.focusTime * 60;
-    let currentCycle = 0;  // Start at 0 instead of undefined
-    let timerId = null;
-
+document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
     const timeDisplay = document.getElementById('timeDisplay');
     const cycleDisplay = document.getElementById('cycleDisplay');
@@ -517,375 +411,212 @@
     const focusButton = document.getElementById('focusButton');
     const breakButton = document.getElementById('breakButton');
     const settingsButton = document.getElementById('settingsButton');
-    const settingsModal = document.getElementById('settingsModal');
-    const closeModalButton = document.querySelector('.close-modal');
-    const saveButton = document.querySelector('.save-button');
-    const cycleSettings = document.getElementById('cycleSettings');
-    const trackCyclesCheckbox = document.getElementById('trackCycles');
+    const modal = document.getElementById('settingsModal');
+    const closeModal = document.querySelector('.close-modal');
+    const saveSettings = document.querySelector('.save-button');
     const progressRing = document.querySelector('.progress-ring__path');
-    const notificationCheckbox = document.getElementById('enableNotifications');
-    const notificationSetting = document.querySelector('.notification-setting');
-    const notificationStatus = document.getElementById('notificationStatus');
-    const toast = document.getElementById('toast');
+    const playIcon = document.querySelector('.play-icon');
+    const pauseIcon = document.querySelector('.pause-icon');
 
-    // Progress ring setup
-    const radius = 45;
+    // Timer State
+    let timeLeft = 25 * 60; // Default 25 minutes in seconds
+    let totalTime = timeLeft;
+    let isRunning = false;
+    let timerId = null;
+    let mode = 'focus';
+    let currentCycle = 0;
+
+    // Settings State
+    const settings = {
+        focusTime: 25,
+        breakTime: 5,
+        trackCycles: true,
+        cyclesBeforeLongBreak: 4,
+        longBreak: 15,
+        enableNotifications: false
+    };
+
+    // Initialize progress ring
+    const radius = progressRing.r.baseVal.value;
     const circumference = radius * 2 * Math.PI;
     progressRing.style.strokeDasharray = `${circumference} ${circumference}`;
     progressRing.style.strokeDashoffset = circumference;
 
-    // Mobile detection
-    function isMobileDevice() {
-        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    }
-
-    // Toast notification function
-    function showToast(message, duration = 3000) {
-        toast.textContent = message;
-        toast.classList.add('visible');
-        setTimeout(() => {
-            toast.classList.remove('visible');
-        }, duration);
-    }
-
-    // Format time for buttons (1 m, 5 m, 1 h)
-    function formatTimeForButtons(minutes) {
-        if (minutes >= 60) {
-            return "1 h";
-        }
-        return `${minutes} m`;
-    }
-
-    // Format time for notifications (1 minute, 5 minutes, 1 hour)
-    function formatTimeForNotification(minutes) {
-        if (minutes >= 60) {
-            return "1 hour";
-        }
-        return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
-    }
-
-    // Enhanced Notification Functions
-    async function checkNotificationSupport() {
-        if (!('Notification' in window)) {
-            notificationStatus.textContent = 'This browser does not support desktop notifications';
-            notificationStatus.classList.add('visible');
-            notificationCheckbox.disabled = true;
-            return false;
-        }
-
-        if (Notification.permission === 'denied') {
-            notificationStatus.textContent = 'Notifications are blocked. Please enable them in your browser settings.';
-            notificationStatus.classList.add('visible');
-            notificationCheckbox.disabled = true;
-            return false;
-        }
-
-        return true;
-    }
-
-    async function requestNotificationPermission() {
-        try {
-            if (!await checkNotificationSupport()) {
-                notificationCheckbox.checked = false;
-                settings.enableNotifications = false;
-                return false;
-            }
-
-            if (Notification.permission === 'granted') {
-                notificationStatus.classList.remove('visible');
-                return true;
-            }
-
-            const permission = await Notification.requestPermission();
-            
-            if (permission === 'granted') {
-                notificationStatus.classList.remove('visible');
-                new Notification("Pomodoro Timer", {
-                    body: "Notifications are now enabled! You'll be notified when your sessions end.",
-                    icon: settings.notificationIcon
-                });
-                return true;
-            } else {
-                notificationCheckbox.checked = false;
-                settings.enableNotifications = false;
-                if (permission === 'denied') {
-                    notificationStatus.textContent = 'Notifications are blocked. Please enable them in your browser settings.';
-                    notificationStatus.classList.add('visible');
-                    showToast('Please enable notifications in your browser settings to receive alerts.');
-                }
-                return false;
-            }
-        } catch (error) {
-            console.error('Error requesting notification permission:', error);
-            notificationStatus.textContent = 'There was an error setting up notifications. Please try again.';
-            notificationStatus.classList.add('visible');
-            notificationCheckbox.checked = false;
-            settings.enableNotifications = false;
-            return false;
-        }
-    }
-
-    async function setupNotifications() {
-        if (isMobileDevice()) {
-            notificationSetting.classList.remove('visible');
-            settings.enableNotifications = false;
-            return;
-        }
-
-        notificationSetting.classList.add('visible');
-        
-        if (Notification.permission === 'granted') {
-            notificationCheckbox.checked = settings.enableNotifications;
-            notificationCheckbox.disabled = false;
-            notificationStatus.classList.remove('visible');
-        } else if (Notification.permission === 'denied') {
-            notificationCheckbox.checked = false;
-            notificationCheckbox.disabled = true;
-            settings.enableNotifications = false;
-            notificationStatus.textContent = 'Notifications are blocked. Please enable them in your browser settings.';
-            notificationStatus.classList.add('visible');
-        } else {
-            notificationCheckbox.checked = false;
-            settings.enableNotifications = false;
-            notificationStatus.classList.remove('visible');
-        }
-    }
-
-    function sendNotification(title, body) {
-        if (!settings.enableNotifications || Notification.permission !== 'granted') return;
-
-        try {
-            const notification = new Notification(title, {
-                body: body,
-                icon: settings.notificationIcon,
-                badge: settings.notificationIcon,
-                silent: false,
-                requireInteraction: false
-            });
-
-            setTimeout(() => notification.close(), 5000);
-
-            notification.onclick = function(event) {
-                event.preventDefault();
-                window.focus();
-                notification.close();
-            };
-        } catch (error) {
-            console.error('Error sending notification:', error);
-            showToast('Failed to send notification');
-        }
-    }
-
-    function updatePlayPauseIcon() {
-        document.querySelector('.play-icon').style.display = isRunning ? 'none' : 'block';
-        document.querySelector('.pause-icon').style.display = isRunning ? 'block' : 'none';
-    }
-
+    // Update progress ring
     function setProgress(percent) {
-        const offset = circumference - (percent / 100 * circumference);
+        const offset = circumference - (percent / 100) * circumference;
         progressRing.style.strokeDashoffset = offset;
     }
 
+    // Format time for display
     function formatTime(seconds) {
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = seconds % 60;
-        return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
     }
 
+    // Format time for notifications
+    function formatTimeForNotification(minutes) {
+        return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+    }
+
+    // Update display
     function updateDisplay() {
         timeDisplay.textContent = formatTime(timeLeft);
-        
         if (settings.trackCycles) {
             cycleDisplay.textContent = `Cycle ${currentCycle}/${settings.cyclesBeforeLongBreak}`;
-            cycleDisplay.style.display = 'block';
-        } else {
-            cycleDisplay.style.display = 'none';
         }
-
-        const totalTime = mode === 'focus' ? 
-            settings.focusTime * 60 : 
-            (currentCycle >= settings.cyclesBeforeLongBreak ? settings.longBreak : settings.breakTime) * 60;
-        
         const progress = ((totalTime - timeLeft) / totalTime) * 100;
         setProgress(progress);
     }
 
-    function updateModeButtons() {
-        const breakTime = currentCycle >= settings.cyclesBeforeLongBreak - 1 && settings.trackCycles ? 
-            settings.longBreak : settings.breakTime;
-        focusButton.textContent = `Focus ${formatTimeForButtons(settings.focusTime)}`;
-        breakButton.textContent = `Break ${formatTimeForButtons(breakTime)}`;
-    }
-
+    // Timer tick function
     function timerTick() {
         if (timeLeft > 0) {
             timeLeft--;
             updateDisplay();
         } else {
-            clearInterval(timerId);
-            
+            // Timer completed
             if (mode === 'focus') {
                 mode = 'break';
                 if (settings.trackCycles) {
-                    currentCycle++;  // Increment after focus session
-                    if (currentCycle >= settings.cyclesBeforeLongBreak) {
-                        currentCycle = 0;  // Reset after completing all cycles
+                    currentCycle++;
+                    
+                    if (currentCycle === settings.cyclesBeforeLongBreak) {
+                        timeLeft = settings.longBreak * 60;
+                        totalTime = timeLeft;
+                        sendNotification(
+                            'Long Break Time',
+                            `Congratulations! Time for a long break of ${formatTimeForNotification(settings.longBreak)}.`
+                        );
+                        currentCycle = 0;  // Reset cycle count after long break
+                    } else {
+                        timeLeft = settings.breakTime * 60;
+                        totalTime = timeLeft;
+                        sendNotification(
+                            'Break Time',
+                            `Time for a short break of ${formatTimeForNotification(settings.breakTime)}.`
+                        );
                     }
+                } else {
+                    timeLeft = settings.breakTime * 60;
+                    totalTime = timeLeft;
                 }
-                const breakDuration = (currentCycle >= settings.cyclesBeforeLongBreak - 1 && settings.trackCycles) ? 
-                    settings.longBreak : settings.breakTime;
-                timeLeft = breakDuration * 60;
-                
-                sendNotification(
-                    'Break Time',
-                    `Great work! Time to take a ${currentCycle >= settings.cyclesBeforeLongBreak - 1 ? 'long ' : ''}break for ${formatTimeForNotification(breakDuration)}.`
-                );
+                breakButton.classList.add('active');
+                focusButton.classList.remove('active');
             } else {
                 mode = 'focus';
                 timeLeft = settings.focusTime * 60;
-                
+                totalTime = timeLeft;
                 sendNotification(
                     'Focus Time',
                     `Break's over! Time to focus for ${formatTimeForNotification(settings.focusTime)}.`
                 );
+                focusButton.classList.add('active');
+                breakButton.classList.remove('active');
             }
-            
-            updateModeButtons();
             updateDisplay();
-            focusButton.classList.toggle('active');
-            breakButton.classList.toggle('active');
-            
+        }
+    }
+
+    // Toggle timer
+    function toggleTimer() {
+        if (isRunning) {
+            clearInterval(timerId);
+            playIcon.style.display = 'block';
+            pauseIcon.style.display = 'none';
+        } else {
             timerId = setInterval(timerTick, 1000);
+            playIcon.style.display = 'none';
+            pauseIcon.style.display = 'block';
+        }
+        isRunning = !isRunning;
+    }
+
+    // Notification handling
+    function requestNotificationPermission() {
+        if (!('Notification' in window)) {
+            document.getElementById('notificationStatus').textContent = 'Notifications not supported';
+            return;
+        }
+
+        Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+                settings.enableNotifications = true;
+            }
+        });
+    }
+
+    function sendNotification(title, body) {
+        if (settings.enableNotifications && Notification.permission === 'granted') {
+            new Notification(title, { body });
         }
     }
 
     // Event Listeners
-    toggleButton.addEventListener('click', () => {
-        isRunning = !isRunning;
-        updatePlayPauseIcon();
-        
-        if (isRunning) {
-            timerId = setInterval(timerTick, 1000);
-        } else {
-            clearInterval(timerId);
-        }
-    });
+    toggleButton.addEventListener('click', toggleTimer);
 
     focusButton.addEventListener('click', () => {
         if (mode !== 'focus') {
             mode = 'focus';
             timeLeft = settings.focusTime * 60;
+            totalTime = timeLeft;
+            updateDisplay();
             focusButton.classList.add('active');
             breakButton.classList.remove('active');
-            updateDisplay();
         }
     });
 
     breakButton.addEventListener('click', () => {
         if (mode !== 'break') {
             mode = 'break';
-            timeLeft = (currentCycle >= settings.cyclesBeforeLongBreak - 1 && settings.trackCycles) ? 
-                settings.longBreak * 60 : settings.breakTime * 60;
-            focusButton.classList.remove('active');
-            breakButton.classList.add('active');
+            timeLeft = settings.breakTime * 60;
+            totalTime = timeLeft;
             updateDisplay();
+            breakButton.classList.add('active');
+            focusButton.classList.remove('active');
         }
     });
 
+    // Settings Modal
     settingsButton.addEventListener('click', () => {
+        modal.classList.add('visible');
+        // Populate current settings
         document.getElementById('focusTime').value = settings.focusTime;
         document.getElementById('breakTime').value = settings.breakTime;
-        document.getElementById('longBreak').value = settings.longBreak;
         document.getElementById('trackCycles').checked = settings.trackCycles;
-        document.getElementById('enableNotifications').checked = settings.enableNotifications;
         document.getElementById('cyclesBeforeLongBreak').value = settings.cyclesBeforeLongBreak;
-        cycleSettings.classList.toggle('disabled', !settings.trackCycles);
-        settingsModal.classList.add('visible');
+        document.getElementById('longBreak').value = settings.longBreak;
+        document.getElementById('enableNotifications').checked = settings.enableNotifications;
     });
 
-    closeModalButton.addEventListener('click', () => {
-        settingsModal.classList.remove('visible');
+    closeModal.addEventListener('click', () => {
+        modal.classList.remove('visible');
     });
 
-    trackCyclesCheckbox.addEventListener('change', () => {
-        cycleSettings.classList.toggle('disabled', !trackCyclesCheckbox.checked);
-    });
+    saveSettings.addEventListener('click', () => {
+        // Update settings
+        settings.focusTime = parseInt(document.getElementById('focusTime').value);
+        settings.breakTime = parseInt(document.getElementById('breakTime').value);
+        settings.trackCycles = document.getElementById('trackCycles').checked;
+        settings.cyclesBeforeLongBreak = parseInt(document.getElementById('cyclesBeforeLongBreak').value);
+        settings.longBreak = parseInt(document.getElementById('longBreak').value);
+        settings.enableNotifications = document.getElementById('enableNotifications').checked;
 
-    notificationCheckbox?.addEventListener('change', async function() {
-        if (this.checked) {
-            const permissionGranted = await requestNotificationPermission();
-            if (!permissionGranted) {
-                this.checked = false;
-                return;
-            }
-            settings.enableNotifications = true;
-        } else {
-            settings.enableNotifications = false;
-        }
-    });
+        // Reset timer with new settings
+        timeLeft = (mode === 'focus' ? settings.focusTime : settings.breakTime) * 60;
+        totalTime = timeLeft;
+        updateDisplay();
+        modal.classList.remove('visible');
 
-    function validateInput(input) {
-        const value = input.value;
-        const errorElement = document.getElementById(`${input.id}-error`);
-        
-        input.classList.remove('error');
-        errorElement.classList.remove('visible');
-        
-        if (!value || !/^\d+$/.test(value)) {
-            errorElement.textContent = 'Please enter a valid number';
-            errorElement.classList.add('visible');
-            return false;
-        }
-        
-        const numValue = parseInt(value);
-        const min = parseInt(input.getAttribute('min'));
-        const max = parseInt(input.getAttribute('max'));
-        
-        if (numValue < min || numValue > max) {
-            errorElement.textContent = `Value must be between ${min} and ${max}`;
-            errorElement.classList.add('visible');
-            return false;
-        }
-        
-        return true;
-    }
-
-    saveButton.addEventListener('click', () => {
-        const inputs = document.querySelectorAll('#settingsModal input[type="number"]');
-        let isValid = true;
-
-        inputs.forEach(input => {
-            if (!validateInput(input)) {
-                isValid = false;
-            }
-        });
-
-        if (isValid) {
-            settings.focusTime = parseInt(document.getElementById('focusTime').value);
-            settings.breakTime = parseInt(document.getElementById('breakTime').value);
-            settings.longBreak = parseInt(document.getElementById('longBreak').value);
-            settings.trackCycles = document.getElementById('trackCycles').checked;
-            settings.enableNotifications = document.getElementById('enableNotifications').checked;
-            settings.cyclesBeforeLongBreak = parseInt(document.getElementById('cyclesBeforeLongBreak').value);
-
-            if (mode === 'focus') {
-                timeLeft = settings.focusTime * 60;
-            } else {
-                timeLeft = (currentCycle >= settings.cyclesBeforeLongBreak - 1 && settings.trackCycles) ? 
-                    settings.longBreak * 60 : settings.breakTime * 60;
-            }
-
-            updateDisplay();
-            updateModeButtons();
-            settingsModal.classList.remove('visible');
-            showToast('Settings saved successfully');
+        if (settings.enableNotifications) {
+            requestNotificationPermission();
         }
     });
 
     // Initialize
-    setupNotifications();
     updateDisplay();
-    updateModeButtons();
-    cycleSettings.classList.toggle('disabled', !settings.trackCycles);
-    trackCyclesCheckbox.checked = settings.trackCycles;
-</script>
+    focusButton.classList.add('active');
+});
+
+
