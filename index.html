@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pomodoro Timer</title>
+    <title>Focus Timer</title>
     <style>
         :root {
-            --primary-color: #ff6b6b;
-            --secondary-color: #4ecdc4;
-            --background-color: #f7f7f7;
-            --text-color: #2d3436;
-            --modal-background: rgba(0, 0, 0, 0.5);
+            --primary-color: #4CAF50;
+            --secondary-color: #2196F3;
+            --background-color: #1a1a1a;
+            --text-color: #ffffff;
+            --button-hover: #45a049;
+            --modal-background: #2d2d2d;
+            --error-color: #ff4444;
         }
 
         * {
@@ -20,7 +22,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            font-family: 'Arial', sans-serif;
             background-color: var(--background-color);
             color: var(--text-color);
             min-height: 100vh;
@@ -41,48 +43,51 @@
         .mode-button {
             background: none;
             border: 2px solid var(--primary-color);
-            color: var(--primary-color);
-            padding: 0.5rem 1.5rem;
-            font-size: 1rem;
-            border-radius: 25px;
-            cursor: pointer;
+            color: var(--text-color);
+            padding: 0.5rem 1rem;
             margin: 0 0.5rem;
+            border-radius: 20px;
+            cursor: pointer;
             transition: all 0.3s ease;
         }
 
         .mode-button.active {
             background-color: var(--primary-color);
-            color: white;
         }
 
         .timer-display {
             position: relative;
             width: 300px;
             height: 300px;
-            margin: 2rem auto;
+            margin: 0 auto 2rem;
         }
 
         .timer-circle {
-            position: relative;
+            position: absolute;
             width: 100%;
             height: 100%;
         }
 
-        .progress-ring {
-            transform: rotate(-90deg);
-        }
-
         .progress-ring__circle {
+            stroke: var(--background-color);
             fill: none;
-            stroke: #ddd;
             stroke-width: 4;
+            r: 45;
+            cx: 150;
+            cy: 150;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
         }
 
         .progress-ring__path {
-            fill: none;
             stroke: var(--primary-color);
+            fill: none;
             stroke-width: 4;
-            stroke-linecap: round;
+            r: 45;
+            cx: 150;
+            cy: 150;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
             transition: stroke-dashoffset 0.3s ease;
         }
 
@@ -95,14 +100,14 @@
         }
 
         .time {
-            font-size: 3.5rem;
+            font-size: 3rem;
             font-weight: bold;
             margin-bottom: 0.5rem;
         }
 
         .cycle-count {
             font-size: 1rem;
-            color: #666;
+            opacity: 0.8;
         }
 
         .control-buttons {
@@ -114,6 +119,7 @@
         .control-button {
             background: none;
             border: none;
+            color: var(--text-color);
             cursor: pointer;
             padding: 0.5rem;
             border-radius: 50%;
@@ -121,7 +127,7 @@
         }
 
         .control-button:hover {
-            background-color: rgba(0, 0, 0, 0.1);
+            background-color: rgba(255, 255, 255, 0.1);
         }
 
         .modal {
@@ -131,7 +137,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: var(--modal-background);
+            background-color: rgba(0, 0, 0, 0.5);
             justify-content: center;
             align-items: center;
         }
@@ -141,7 +147,7 @@
         }
 
         .modal-content {
-            background-color: white;
+            background-color: var(--modal-background);
             padding: 2rem;
             border-radius: 10px;
             width: 90%;
@@ -157,14 +163,15 @@
 
         .modal-title {
             font-size: 1.5rem;
-            font-weight: 600;
+            font-weight: bold;
         }
 
         .close-modal {
             background: none;
             border: none;
+            color: var(--text-color);
+            font-size: 1.5rem;
             cursor: pointer;
-            padding: 0.5rem;
         }
 
         .setting-group {
@@ -174,15 +181,15 @@
         .setting-group label {
             display: block;
             margin-bottom: 0.5rem;
-            font-weight: 500;
         }
 
         .setting-group input[type="number"] {
             width: 100%;
             padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
+            background-color: var(--background-color);
+            border: 1px solid var(--primary-color);
+            color: var(--text-color);
+            border-radius: 4px;
         }
 
         .checkbox-group {
@@ -191,49 +198,32 @@
             gap: 0.5rem;
         }
 
-        .notification-setting {
-            position: relative;
-        }
-
-        .notification-status {
-            display: none;
-            position: absolute;
-            bottom: -20px;
-            left: 0;
-            font-size: 0.8rem;
-            color: var(--primary-color);
-        }
-
-        .notification-status.visible {
-            display: block;
-        }
-
-        .disabled {
-            opacity: 0.5;
-            pointer-events: none;
+        .error-message {
+            color: var(--error-color);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            min-height: 1.25rem;
         }
 
         .save-button {
             background-color: var(--primary-color);
-            color: white;
+            color: var(--text-color);
             border: none;
-            padding: 0.75rem 2rem;
-            border-radius: 25px;
-            font-size: 1rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
             cursor: pointer;
             width: 100%;
             transition: background-color 0.3s ease;
         }
 
         .save-button:hover {
-            background-color: #ff5252;
+            background-color: var(--button-hover);
         }
 
-        .error-message {
-            color: var(--primary-color);
-            font-size: 0.8rem;
-            margin-top: 0.25rem;
-            min-height: 1rem;
+        .notification-status {
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            opacity: 0.8;
         }
 
         .toast {
@@ -241,18 +231,21 @@
             bottom: 2rem;
             left: 50%;
             transform: translateX(-50%);
-            background-color: #333;
-            color: white;
+            background-color: var(--primary-color);
+            color: var(--text-color);
             padding: 0.75rem 1.5rem;
-            border-radius: 25px;
-            font-size: 0.9rem;
+            border-radius: 4px;
             opacity: 0;
             transition: opacity 0.3s ease;
-            pointer-events: none;
         }
 
         .toast.visible {
             opacity: 1;
+        }
+
+        .setting-group.disabled {
+            opacity: 0.5;
+            pointer-events: none;
         }
     </style>
 </head>
@@ -265,30 +258,28 @@
         </div>
 
         <div class="timer-display">
-            <div class="timer-circle">
-                <svg class="progress-ring" width="300" height="300">
-                    <circle class="progress-ring__circle" cx="150" cy="150" r="45" stroke-width="4"/>
-                    <circle class="progress-ring__path" cx="150" cy="150" r="45" stroke-width="4"/>
-                </svg>
-            </div>
+            <svg class="timer-circle" viewBox="0 0 300 300">
+                <circle class="progress-ring__circle" r="45" cx="150" cy="150"/>
+                <circle class="progress-ring__path" r="45" cx="150" cy="150"/>
+            </svg>
             <div class="timer-content">
                 <div id="timeDisplay" class="time">25:00</div>
-                <div id="cycleDisplay" class="cycle-count">Cycle 1/2</div>
+                <div id="cycleDisplay" class="cycle-count">Cycle 0/2</div>
             </div>
         </div>
 
         <div class="control-buttons">
             <button id="toggleButton" class="control-button">
-                <svg class="play-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg class="play-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="5 3 19 12 5 21 5 3"></polygon>
                 </svg>
-                <svg class="pause-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                <svg class="pause-icon" style="display: none;" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="6" y="4" width="4" height="16"></rect>
                     <rect x="14" y="4" width="4" height="16"></rect>
                 </svg>
             </button>
             <button id="settingsButton" class="control-button">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="3"></circle>
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                 </svg>
@@ -300,7 +291,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title">Settings</h2>
-                <button class="close-modal">✕</button>
+                <button class="close-modal">&times;</button>
             </div>
             <div class="setting-group">
                 <label for="focusTime">Focus Duration (minutes)</label>
@@ -310,6 +301,11 @@
             <div class="setting-group">
                 <label for="breakTime">Break Duration (minutes)</label>
                 <input type="number" id="breakTime" min="1" max="30" value="5">
+                <div class="error-message"></div>
+            </div>
+            <div class="setting-group">
+                <label for="longBreak">Long Break Duration (minutes)</label>
+                <input type="number" id="longBreak" min="1" max="45" value="15">
                 <div class="error-message"></div>
             </div>
             <div class="setting-group">
@@ -324,11 +320,6 @@
                 <div class="error-message"></div>
             </div>
             <div class="setting-group">
-                <label for="longBreak">Long Break Duration (minutes)</label>
-                <input type="number" id="longBreak" min="1" max="60" value="15">
-                <div class="error-message"></div>
-            </div>
-            <div class="setting-group notification-setting">
                 <div class="checkbox-group">
                     <input type="checkbox" id="enableNotifications">
                     <label for="enableNotifications">Enable Notifications</label>
@@ -342,6 +333,27 @@
     <div id="toast" class="toast"></div>
 
 <script>
+// DOM Elements
+const timeDisplay = document.getElementById('timeDisplay');
+const cycleDisplay = document.getElementById('cycleDisplay');
+const toggleButton = document.getElementById('toggleButton');
+const settingsButton = document.getElementById('settingsButton');
+const focusButton = document.getElementById('focusButton');
+const breakButton = document.getElementById('breakButton');
+const modal = document.getElementById('settingsModal');
+const closeModal = document.querySelector('.close-modal');
+const saveButton = document.querySelector('.save-button');
+const toast = document.getElementById('toast');
+const progressRing = document.querySelector('.progress-ring__path');
+const playIcon = document.querySelector('.play-icon');
+const pauseIcon = document.querySelector('.pause-icon');
+
+// Calculate circle circumference
+const radius = 45;
+const circumference = radius * 2 * Math.PI;
+progressRing.style.strokeDasharray = `${circumference} ${circumference}`;
+progressRing.style.strokeDashoffset = circumference;
+
 // Settings and State Management
 let settings = {
     focusTime: 25,
@@ -355,39 +367,14 @@ let settings = {
 let timeLeft = settings.focusTime * 60;
 let timerId = null;
 let mode = 'focus';
-let focusSessionsCompleted = 0;
+let focusSessionsCompleted = 0;  // Starts at 0 to show Cycle 0/2
 let isRunning = false;
 
-// DOM Elements
-const timeDisplay = document.getElementById('timeDisplay');
-const cycleDisplay = document.getElementById('cycleDisplay');
-const toggleButton = document.getElementById('toggleButton');
-const settingsButton = document.getElementById('settingsButton');
-const focusButton = document.getElementById('focusButton');
-const breakButton = document.getElementById('breakButton');
-const modal = document.getElementById('settingsModal');
-const closeModal = document.querySelector('.close-modal');
-const saveButton = document.querySelector('.save-button');
-const toast = document.getElementById('toast');
-const playIcon = document.querySelector('.play-icon');
-const pauseIcon = document.querySelector('.pause-icon');
-const progressRing = document.querySelector('.progress-ring__path');
-
-// Calculate progress ring parameters
-const radius = 45;
-const circumference = radius * 2 * Math.PI;
-progressRing.style.strokeDasharray = `${circumference} ${circumference}`;
-progressRing.style.strokeDashoffset = circumference;
-
-// Timer Functions
+// Functions
 function formatTime(seconds) {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-}
-
-function formatTimeForNotification(minutes) {
-    return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
 
 function setProgress(percent) {
@@ -399,9 +386,7 @@ function updateDisplay() {
     timeDisplay.textContent = formatTime(timeLeft);
     
     if (settings.trackCycles) {
-        // Show current cycle out of total cycles
-        const currentCycle = Math.min(focusSessionsCompleted + 1, settings.cyclesBeforeLongBreak);
-        cycleDisplay.textContent = `Cycle ${currentCycle}/${settings.cyclesBeforeLongBreak}`;
+        cycleDisplay.textContent = `Cycle ${focusSessionsCompleted}/${settings.cyclesBeforeLongBreak}`;
         cycleDisplay.style.display = 'block';
     } else {
         cycleDisplay.style.display = 'none';
@@ -416,36 +401,78 @@ function updateDisplay() {
     setProgress(progress);
 }
 
+function showToast(message, duration = 3000) {
+    toast.textContent = message;
+    toast.classList.add('visible');
+    setTimeout(() => toast.classList.remove('visible'), duration);
+}
+
+function requestNotificationPermission() {
+    if (!('Notification' in window)) {
+        document.getElementById('notificationStatus').textContent = 'Notifications not supported';
+        return;
+    }
+
+    Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+            settings.enableNotifications = true;
+            document.getElementById('enableNotifications').checked = true;
+            document.getElementById('notificationStatus').textContent = 'Notifications enabled';
+        } else {
+            settings.enableNotifications = false;
+            document.getElementById('enableNotifications').checked = false;
+            document.getElementById('notificationStatus').textContent = 'Notifications disabled';
+        }
+    });
+}
+
+function showNotification(title, body) {
+    if (settings.enableNotifications && Notification.permission === 'granted') {
+        new Notification(title, { body });
+    }
+}
+
+function switchMode(newMode) {
+    mode = newMode;
+    if (mode === 'focus') {
+        timeLeft = settings.focusTime * 60;
+        focusButton.classList.add('active');
+        breakButton.classList.remove('active');
+        progressRing.style.stroke = '#4CAF50';
+    } else {
+        const isLongBreak = settings.trackCycles && 
+            focusSessionsCompleted >= settings.cyclesBeforeLongBreak;
+        timeLeft = (isLongBreak ? settings.longBreak : settings.breakTime) * 60;
+        focusButton.classList.remove('active');
+        breakButton.classList.add('active');
+        progressRing.style.stroke = '#2196F3';
+    }
+    updateDisplay();
+}
+
 function timerTick() {
     if (timeLeft > 0) {
         timeLeft--;
         updateDisplay();
     } else {
-        clearInterval(timerId);
-        
         if (mode === 'focus') {
-            // Switch to break mode
-            mode = 'break';
-            
-            // Only increment focus sessions after completing a focus session
+            // Increment focus sessions completed after a focus session
             focusSessionsCompleted++;
             
             // Determine if it's time for a long break
             const isLongBreak = settings.trackCycles && 
                 focusSessionsCompleted >= settings.cyclesBeforeLongBreak;
             
+            // Switch to break mode
+            mode = 'break';
             timeLeft = isLongBreak ? 
                 settings.longBreak * 60 : 
                 settings.breakTime * 60;
             
-            sendNotification(
-                'Break Time',
-                `Great work! Time to take a ${isLongBreak ? 'long ' : ''}break for ${
-                    formatTimeForNotification(isLongBreak ? settings.longBreak : settings.breakTime)
-                }.`
-            );
-
-            // Reset cycles counter after starting the long break
+            showNotification('Focus Session Complete', 
+                `Time for a ${isLongBreak ? 'long ' : ''}break!`);
+            
+            // Reset cycles counter after completing all cycles
             if (isLongBreak) {
                 focusSessionsCompleted = 0;
             }
@@ -453,27 +480,11 @@ function timerTick() {
             // Switch back to focus mode
             mode = 'focus';
             timeLeft = settings.focusTime * 60;
-            
-            sendNotification(
-                'Focus Time',
-                `Break's over! Time to focus for ${formatTimeForNotification(settings.focusTime)}.`
-            );
+            showNotification('Break Complete', 'Time to focus!');
         }
         
-        updateModeButtons();
-        updateDisplay();
-        focusButton.classList.toggle('active', mode === 'focus');
-        breakButton.classList.toggle('active', mode === 'break');
-        
-        // Restart the timer immediately
-        timerId = setInterval(timerTick, 1000);
+        switchMode(mode);
     }
-}
-
-// UI Update Functions
-function updateModeButtons() {
-    focusButton.textContent = `Focus ${settings.focusTime}m`;
-    breakButton.textContent = `Break ${settings.breakTime}m`;
 }
 
 function toggleTimer() {
@@ -489,81 +500,30 @@ function toggleTimer() {
     isRunning = !isRunning;
 }
 
-function switchMode(newMode) {
-    if (mode === newMode) return;
-    
-    mode = newMode;
-    clearInterval(timerId);
-    isRunning = false;
-    playIcon.style.display = 'block';
-    pauseIcon.style.display = 'none';
-    
-    timeLeft = mode === 'focus' ? 
-        settings.focusTime * 60 : 
-        settings.breakTime * 60;
-    
-    focusButton.classList.toggle('active', mode === 'focus');
-    breakButton.classList.toggle('active', mode === 'break');
-    updateDisplay();
-}
+// Event Listeners
+toggleButton.addEventListener('click', toggleTimer);
+settingsButton.addEventListener('click', () => modal.classList.add('visible'));
+closeModal.addEventListener('click', () => modal.classList.remove('visible'));
 
-// Notification Functions
-function requestNotificationPermission() {
-    if (!('Notification' in window)) {
-        document.getElementById('notificationStatus').textContent = 'Notifications not supported';
-        return;
+focusButton.addEventListener('click', () => {
+    if (mode !== 'focus') {
+        switchMode('focus');
     }
+});
 
-    Notification.requestPermission().then(permission => {
-        settings.enableNotifications = permission === 'granted';
-        document.getElementById('enableNotifications').checked = settings.enableNotifications;
-        document.getElementById('notificationStatus').textContent = 
-            permission === 'granted' ? 'Notifications enabled' : 'Notifications disabled';
-    });
-}
-
-function sendNotification(title, body) {
-    if (settings.enableNotifications && Notification.permission === 'granted') {
-        new Notification(title, { body });
+breakButton.addEventListener('click', () => {
+    if (mode !== 'break') {
+        switchMode('break');
     }
-}
+});
 
-// Settings Management
-function showToast(message) {
-    toast.textContent = message;
-    toast.classList.add('visible');
-    setTimeout(() => toast.classList.remove('visible'), 3000);
-}
+document.getElementById('trackCycles').addEventListener('change', function() {
+    const cycleSettings = document.getElementById('cycleSettings');
+    cycleSettings.classList.toggle('disabled', !this.checked);
+});
 
-function validateSettings() {
-    const inputs = {
-        focusTime: document.getElementById('focusTime'),
-        breakTime: document.getElementById('breakTime'),
-        longBreak: document.getElementById('longBreak'),
-        cyclesBeforeLongBreak: document.getElementById('cyclesBeforeLongBreak')
-    };
-
-    let isValid = true;
-
-    for (const [key, input] of Object.entries(inputs)) {
-        const value = parseInt(input.value);
-        const errorElement = input.nextElementSibling;
-        
-        if (isNaN(value) || value < parseInt(input.min) || value > parseInt(input.max)) {
-            errorElement.textContent = `Please enter a number between ${input.min} and ${input.max}`;
-            isValid = false;
-        } else {
-            errorElement.textContent = '';
-        }
-    }
-
-    return isValid;
-}
-
-function saveSettings() {
-    if (!validateSettings()) return;
-
-    settings = {
+saveButton.addEventListener('click', () => {
+    const newSettings = {
         focusTime: parseInt(document.getElementById('focusTime').value),
         breakTime: parseInt(document.getElementById('breakTime').value),
         longBreak: parseInt(document.getElementById('longBreak').value),
@@ -572,27 +532,53 @@ function saveSettings() {
         enableNotifications: document.getElementById('enableNotifications').checked
     };
 
-    updateModeButtons();
-    timeLeft = mode === 'focus' ? settings.focusTime * 60 : settings.breakTime * 60;
-    updateDisplay();
+    // Validate settings
+    if (newSettings.focusTime < 1 || newSettings.focusTime > 60) {
+        document.querySelector('#focusTime + .error-message').textContent = 
+            'Focus time must be between 1 and 60 minutes';
+        return;
+    }
+
+    if (newSettings.breakTime < 1 || newSettings.breakTime > 30) {
+        document.querySelector('#breakTime + .error-message').textContent = 
+            'Break time must be between 1 and 30 minutes';
+        return;
+    }
+
+    if (newSettings.longBreak < 1 || newSettings.longBreak > 45) {
+        document.querySelector('#longBreak + .error-message').textContent = 
+            'Long break must be between 1 and 45 minutes';
+        return;
+    }
+
+    if (newSettings.cyclesBeforeLongBreak < 1 || newSettings.cyclesBeforeLongBreak > 10) {
+        document.querySelector('#cyclesBeforeLongBreak + .error-message').textContent = 
+            'Cycles must be between 1 and 10';
+        return;
+    }
+
+    // Clear any error messages
+    document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+
+    // Update settings
+    settings = newSettings;
+
+    // If timer is not running, update current time left
+    if (!isRunning) {
+        timeLeft = settings.focusTime * 60;
+        updateDisplay();
+    }
+
+    // Handle notification permission
+    if (settings.enableNotifications) {
+        requestNotificationPermission();
+    }
+
     modal.classList.remove('visible');
     showToast('Settings saved successfully');
-}
-
-// Event Listeners
-toggleButton.addEventListener('click', toggleTimer);
-focusButton.addEventListener('click', () => switchMode('focus'));
-breakButton.addEventListener('click', () => switchMode('break'));
-settingsButton.addEventListener('click', () => modal.classList.add('visible'));
-closeModal.addEventListener('click', () => modal.classList.remove('visible'));
-saveButton.addEventListener('click', saveSettings);
-document.getElementById('enableNotifications').addEventListener('change', requestNotificationPermission);
-document.getElementById('trackCycles').addEventListener('change', function() {
-    document.getElementById('cycleSettings').classList.toggle('disabled', !this.checked);
 });
 
 // Initialize
-updateModeButtons();
 updateDisplay();
 </script>
 </body>
