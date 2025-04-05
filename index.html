@@ -605,14 +605,14 @@
 
             const totalTime = mode === 'focus' ? 
                 settings.focusTime * 60 : 
-                (currentCycle >= settings.cyclesBeforeLongBreak - 1 ? settings.longBreak : settings.breakTime) * 60;
+                (currentCycle === 0 && settings.trackCycles ? settings.longBreak : settings.breakTime) * 60;
             
             const progress = ((totalTime - timeLeft) / totalTime) * 100;
             setProgress(progress);
         }
 
         function updateModeButtons() {
-            const breakTime = currentCycle >= settings.cyclesBeforeLongBreak - 1 && settings.trackCycles ? 
+            const breakTime = currentCycle === 0 && settings.trackCycles ? 
                 settings.longBreak : settings.breakTime;
             focusButton.textContent = `Focus ${formatTimeForButtons(settings.focusTime)}`;
             breakButton.textContent = `Break ${formatTimeForButtons(breakTime)}`;
@@ -631,7 +631,7 @@
                     if (settings.trackCycles) {
                         currentCycle = (currentCycle + 1) % settings.cyclesBeforeLongBreak;
                     }
-                    const breakDuration = (currentCycle >= settings.cyclesBeforeLongBreak - 1 && settings.trackCycles) ? 
+                    const breakDuration = (currentCycle === 0 && settings.trackCycles) ? 
                         settings.longBreak : settings.breakTime;
                     timeLeft = breakDuration * 60;
                     
@@ -684,7 +684,7 @@
         breakButton.addEventListener('click', () => {
             if (mode !== 'break') {
                 mode = 'break';
-                timeLeft = (currentCycle >= settings.cyclesBeforeLongBreak - 1 && settings.trackCycles) ? 
+                timeLeft = (currentCycle === 0 && settings.trackCycles) ? 
                     settings.longBreak * 60 : settings.breakTime * 60;
                 focusButton.classList.remove('active');
                 breakButton.classList.add('active');
@@ -769,7 +769,7 @@
                 if (mode === 'focus') {
                     timeLeft = settings.focusTime * 60;
                 } else {
-                    timeLeft = (currentCycle >= settings.cyclesBeforeLongBreak - 1 && settings.trackCycles) ? 
+                    timeLeft = (currentCycle === 0 && settings.trackCycles) ? 
                         settings.longBreak * 60 : settings.breakTime * 60;
                 }
 
