@@ -4,99 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pomodoro Timer</title>
-</head>
-<body>
-    <div class="container">
-        <div class="timer-container">
-            <svg class="progress-ring" width="120" height="120">
-                <circle class="progress-ring__circle" stroke="#e6e6e6" stroke-width="8" fill="transparent" r="45" cx="60" cy="60"/>
-                <circle class="progress-ring__path" stroke="#4F46E5" stroke-width="8" fill="transparent" r="45" cx="60" cy="60"/>
-            </svg>
-            <div class="timer-display">
-                <span id="timeDisplay">25:00</span>
-                <span id="cycleDisplay">Cycle 0/4</span>
-            </div>
-        </div>
-
-        <div class="controls">
-            <button id="focusButton" class="mode-button active">Focus 25m</button>
-            <button id="toggleButton" class="control-button">
-                <svg class="play-icon" viewBox="0 0 24 24" width="24" height="24">
-                    <path fill="currentColor" d="M8 5v14l11-7z"/>
-                </svg>
-                <svg class="pause-icon" viewBox="0 0 24 24" width="24" height="24" style="display: none;">
-                    <path fill="currentColor" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-                </svg>
-            </button>
-            <button id="breakButton" class="mode-button">Break 5m</button>
-        </div>
-
-        <button id="settingsButton" class="settings-button">
-            <svg viewBox="0 0 24 24" width="24" height="24">
-                <path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
-            </svg>
-        </button>
-    </div>
-
-    <div id="settingsModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Settings</h2>
-                <button class="close-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="setting-group">
-                    <label for="focusTime">Focus Time (minutes)</label>
-                    <input type="number" id="focusTime" min="1" max="60" value="25">
-                    <span id="focusTime-error" class="error-message"></span>
-                </div>
-
-                <div class="setting-group">
-                    <label for="breakTime">Break Time (minutes)</label>
-                    <input type="number" id="breakTime" min="1" max="30" value="5">
-                    <span id="breakTime-error" class="error-message"></span>
-                </div>
-
-                <div class="setting-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="trackCycles">
-                        Track Cycles
-                    </label>
-                </div>
-
-                <div id="cycleSettings">
-                    <div class="setting-group">
-                        <label for="cyclesBeforeLongBreak">Cycles Before Long Break</label>
-                        <input type="number" id="cyclesBeforeLongBreak" min="2" max="8" value="4">
-                        <span id="cyclesBeforeLongBreak-error" class="error-message"></span>
-                    </div>
-
-                    <div class="setting-group">
-                        <label for="longBreak">Long Break Time (minutes)</label>
-                        <input type="number" id="longBreak" min="5" max="60" value="15">
-                        <span id="longBreak-error" class="error-message"></span>
-                    </div>
-                </div>
-
-                <div class="setting-group notification-setting">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="enableNotifications">
-                        Enable Notifications
-                    </label>
-                    <span id="notificationStatus" class="notification-status"></span>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="save-button">Save Settings</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="toast" class="toast"></div>
-</body>
-</html>
-
-<style>
+    <style>
     :root {
         --primary-color: #4F46E5;
         --secondary-color: #818CF8;
@@ -401,222 +309,314 @@
             width: 100%;
         }
     }
-</style>
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="timer-container">
+            <svg class="progress-ring" width="120" height="120">
+                <circle class="progress-ring__circle" stroke="#e6e6e6" stroke-width="8" fill="transparent" r="45" cx="60" cy="60"/>
+                <circle class="progress-ring__path" stroke="#4F46E5" stroke-width="8" fill="transparent" r="45" cx="60" cy="60"/>
+            </svg>
+            <div class="timer-display">
+                <span id="timeDisplay">25:00</span>
+                <span id="cycleDisplay">Cycle 0/4</span>
+            </div>
+        </div>
 
-document.addEventListener('DOMContentLoaded', () => {
-    // DOM Elements
-    const timeDisplay = document.getElementById('timeDisplay');
-    const cycleDisplay = document.getElementById('cycleDisplay');
-    const toggleButton = document.getElementById('toggleButton');
-    const focusButton = document.getElementById('focusButton');
-    const breakButton = document.getElementById('breakButton');
-    const settingsButton = document.getElementById('settingsButton');
-    const modal = document.getElementById('settingsModal');
-    const closeModal = document.querySelector('.close-modal');
-    const saveSettings = document.querySelector('.save-button');
-    const progressRing = document.querySelector('.progress-ring__path');
-    const playIcon = document.querySelector('.play-icon');
-    const pauseIcon = document.querySelector('.pause-icon');
+        <div class="controls">
+            <button id="focusButton" class="mode-button active">Focus 25m</button>
+            <button id="toggleButton" class="control-button">
+                <svg class="play-icon" viewBox="0 0 24 24" width="24" height="24">
+                    <path fill="currentColor" d="M8 5v14l11-7z"/>
+                </svg>
+                <svg class="pause-icon" viewBox="0 0 24 24" width="24" height="24" style="display: none;">
+                    <path fill="currentColor" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                </svg>
+            </button>
+            <button id="breakButton" class="mode-button">Break 5m</button>
+        </div>
 
-    // Timer State
-    let timeLeft = 25 * 60; // Default 25 minutes in seconds
-    let totalTime = timeLeft;
-    let isRunning = false;
-    let timerId = null;
-    let mode = 'focus';
-    let currentCycle = 0;
+        <button id="settingsButton" class="settings-button">
+            <svg viewBox="0 0 24 24" width="24" height="24">
+                <path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+            </svg>
+        </button>
+    </div>
 
-    // Settings State
-    const settings = {
-        focusTime: 25,
-        breakTime: 5,
-        trackCycles: true,
-        cyclesBeforeLongBreak: 4,
-        longBreak: 15,
-        enableNotifications: false
-    };
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-group">
+                    <label for="focusTime">Focus Time (minutes)</label>
+                    <input type="number" id="focusTime" min="1" max="60" value="25">
+                    <span id="focusTime-error" class="error-message"></span>
+                </div>
 
-    // Initialize progress ring
-    const radius = progressRing.r.baseVal.value;
-    const circumference = radius * 2 * Math.PI;
-    progressRing.style.strokeDasharray = `${circumference} ${circumference}`;
-    progressRing.style.strokeDashoffset = circumference;
+                <div class="setting-group">
+                    <label for="breakTime">Break Time (minutes)</label>
+                    <input type="number" id="breakTime" min="1" max="30" value="5">
+                    <span id="breakTime-error" class="error-message"></span>
+                </div>
 
-    // Update progress ring
-    function setProgress(percent) {
-        const offset = circumference - (percent / 100) * circumference;
-        progressRing.style.strokeDashoffset = offset;
-    }
+                <div class="setting-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="trackCycles">
+                        Track Cycles
+                    </label>
+                </div>
 
-    // Format time for display
-    function formatTime(seconds) {
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-    }
+                <div id="cycleSettings">
+                    <div class="setting-group">
+                        <label for="cyclesBeforeLongBreak">Cycles Before Long Break</label>
+                        <input type="number" id="cyclesBeforeLongBreak" min="2" max="8" value="4">
+                        <span id="cyclesBeforeLongBreak-error" class="error-message"></span>
+                    </div>
 
-    // Format time for notifications
-    function formatTimeForNotification(minutes) {
-        return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
-    }
+                    <div class="setting-group">
+                        <label for="longBreak">Long Break Time (minutes)</label>
+                        <input type="number" id="longBreak" min="5" max="60" value="15">
+                        <span id="longBreak-error" class="error-message"></span>
+                    </div>
+                </div>
 
-    // Update display
-    function updateDisplay() {
-        timeDisplay.textContent = formatTime(timeLeft);
-        if (settings.trackCycles) {
-            cycleDisplay.textContent = `Cycle ${currentCycle}/${settings.cyclesBeforeLongBreak}`;
-        }
-        const progress = ((totalTime - timeLeft) / totalTime) * 100;
-        setProgress(progress);
-    }
+                <div class="setting-group notification-setting">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="enableNotifications">
+                        Enable Notifications
+                    </label>
+                    <span id="notificationStatus" class="notification-status"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="save-button">Save Settings</button>
+            </div>
+        </div>
+    </div>
 
-    // Timer tick function
-    function timerTick() {
-        if (timeLeft > 0) {
-            timeLeft--;
-            updateDisplay();
-        } else {
-            // Timer completed
-            if (mode === 'focus') {
-                mode = 'break';
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // JavaScript code goes here
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const timeDisplay = document.getElementById('timeDisplay');
+            const cycleDisplay = document.getElementById('cycleDisplay');
+            const toggleButton = document.getElementById('toggleButton');
+            const focusButton = document.getElementById('focusButton');
+            const breakButton = document.getElementById('breakButton');
+            const settingsButton = document.getElementById('settingsButton');
+            const modal = document.getElementById('settingsModal');
+            const closeModal = document.querySelector('.close-modal');
+            const saveSettings = document.querySelector('.save-button');
+            const progressRing = document.querySelector('.progress-ring__path');
+            const playIcon = document.querySelector('.play-icon');
+            const pauseIcon = document.querySelector('.pause-icon');
+                        // Timer State
+            let timeLeft = 25 * 60; // Default 25 minutes in seconds
+            let totalTime = timeLeft;
+            let isRunning = false;
+            let timerId = null;
+            let mode = 'focus';
+            let currentCycle = 0;
+
+            // Settings State
+            const settings = {
+                focusTime: 25,
+                breakTime: 5,
+                trackCycles: true,
+                cyclesBeforeLongBreak: 4,
+                longBreak: 15,
+                enableNotifications: false
+            };
+
+            // Initialize progress ring
+            const radius = progressRing.r.baseVal.value;
+            const circumference = radius * 2 * Math.PI;
+            progressRing.style.strokeDasharray = `${circumference} ${circumference}`;
+            progressRing.style.strokeDashoffset = circumference;
+
+            // Update progress ring
+            function setProgress(percent) {
+                const offset = circumference - (percent / 100) * circumference;
+                progressRing.style.strokeDashoffset = offset;
+            }
+
+            // Format time for display
+            function formatTime(seconds) {
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+            }
+
+            // Format time for notifications
+            function formatTimeForNotification(minutes) {
+                return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+            }
+
+            // Update display
+            function updateDisplay() {
+                timeDisplay.textContent = formatTime(timeLeft);
                 if (settings.trackCycles) {
-                    currentCycle++;
-                    
-                    if (currentCycle === settings.cyclesBeforeLongBreak) {
-                        timeLeft = settings.longBreak * 60;
-                        totalTime = timeLeft;
-                        sendNotification(
-                            'Long Break Time',
-                            `Congratulations! Time for a long break of ${formatTimeForNotification(settings.longBreak)}.`
-                        );
-                        currentCycle = 0;  // Reset cycle count after long break
-                    } else {
-                        timeLeft = settings.breakTime * 60;
-                        totalTime = timeLeft;
-                        sendNotification(
-                            'Break Time',
-                            `Time for a short break of ${formatTimeForNotification(settings.breakTime)}.`
-                        );
-                    }
+                    cycleDisplay.textContent = `Cycle ${currentCycle}/${settings.cyclesBeforeLongBreak}`;
+                }
+                const progress = ((totalTime - timeLeft) / totalTime) * 100;
+                setProgress(progress);
+            }
+
+            // Timer tick function
+            function timerTick() {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateDisplay();
                 } else {
+                    // Timer completed
+                    if (mode === 'focus') {
+                        mode = 'break';
+                        if (settings.trackCycles) {
+                            currentCycle++;
+                            
+                            if (currentCycle === settings.cyclesBeforeLongBreak) {
+                                timeLeft = settings.longBreak * 60;
+                                totalTime = timeLeft;
+                                sendNotification(
+                                    'Long Break Time',
+                                    `Congratulations! Time for a long break of ${formatTimeForNotification(settings.longBreak)}.`
+                                );
+                                currentCycle = 0;  // Reset cycle count after long break
+                            } else {
+                                timeLeft = settings.breakTime * 60;
+                                totalTime = timeLeft;
+                                sendNotification(
+                                    'Break Time',
+                                    `Time for a short break of ${formatTimeForNotification(settings.breakTime)}.`
+                                );
+                            }
+                        } else {
+                            timeLeft = settings.breakTime * 60;
+                            totalTime = timeLeft;
+                        }
+                        breakButton.classList.add('active');
+                        focusButton.classList.remove('active');
+                    } else {
+                        mode = 'focus';
+                        timeLeft = settings.focusTime * 60;
+                        totalTime = timeLeft;
+                        sendNotification(
+                            'Focus Time',
+                            `Break's over! Time to focus for ${formatTimeForNotification(settings.focusTime)}.`
+                        );
+                        focusButton.classList.add('active');
+                        breakButton.classList.remove('active');
+                    }
+                    updateDisplay();
+                }
+            }
+
+            // Toggle timer
+            function toggleTimer() {
+                if (isRunning) {
+                    clearInterval(timerId);
+                    playIcon.style.display = 'block';
+                    pauseIcon.style.display = 'none';
+                } else {
+                    timerId = setInterval(timerTick, 1000);
+                    playIcon.style.display = 'none';
+                    pauseIcon.style.display = 'block';
+                }
+                isRunning = !isRunning;
+            }
+
+            // Notification handling
+            function requestNotificationPermission() {
+                if (!('Notification' in window)) {
+                    document.getElementById('notificationStatus').textContent = 'Notifications not supported';
+                    return;
+                }
+
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        settings.enableNotifications = true;
+                    }
+                });
+            }
+
+            function sendNotification(title, body) {
+                if (settings.enableNotifications && Notification.permission === 'granted') {
+                    new Notification(title, { body });
+                }
+            }
+
+            // Event Listeners
+            toggleButton.addEventListener('click', toggleTimer);
+
+            focusButton.addEventListener('click', () => {
+                if (mode !== 'focus') {
+                    mode = 'focus';
+                    timeLeft = settings.focusTime * 60;
+                    totalTime = timeLeft;
+                    updateDisplay();
+                    focusButton.classList.add('active');
+                    breakButton.classList.remove('active');
+                }
+            });
+
+            breakButton.addEventListener('click', () => {
+                if (mode !== 'break') {
+                    mode = 'break';
                     timeLeft = settings.breakTime * 60;
                     totalTime = timeLeft;
+                    updateDisplay();
+                    breakButton.classList.add('active');
+                    focusButton.classList.remove('active');
                 }
-                breakButton.classList.add('active');
-                focusButton.classList.remove('active');
-            } else {
-                mode = 'focus';
-                timeLeft = settings.focusTime * 60;
+            });
+
+            // Settings Modal
+            settingsButton.addEventListener('click', () => {
+                modal.classList.add('visible');
+                // Populate current settings
+                document.getElementById('focusTime').value = settings.focusTime;
+                document.getElementById('breakTime').value = settings.breakTime;
+                document.getElementById('trackCycles').checked = settings.trackCycles;
+                document.getElementById('cyclesBeforeLongBreak').value = settings.cyclesBeforeLongBreak;
+                document.getElementById('longBreak').value = settings.longBreak;
+                document.getElementById('enableNotifications').checked = settings.enableNotifications;
+            });
+
+            closeModal.addEventListener('click', () => {
+                modal.classList.remove('visible');
+            });
+
+            saveSettings.addEventListener('click', () => {
+                // Update settings
+                settings.focusTime = parseInt(document.getElementById('focusTime').value);
+                settings.breakTime = parseInt(document.getElementById('breakTime').value);
+                settings.trackCycles = document.getElementById('trackCycles').checked;
+                settings.cyclesBeforeLongBreak = parseInt(document.getElementById('cyclesBeforeLongBreak').value);
+                settings.longBreak = parseInt(document.getElementById('longBreak').value);
+                settings.enableNotifications = document.getElementById('enableNotifications').checked;
+
+                // Reset timer with new settings
+                timeLeft = (mode === 'focus' ? settings.focusTime : settings.breakTime) * 60;
                 totalTime = timeLeft;
-                sendNotification(
-                    'Focus Time',
-                    `Break's over! Time to focus for ${formatTimeForNotification(settings.focusTime)}.`
-                );
-                focusButton.classList.add('active');
-                breakButton.classList.remove('active');
-            }
-            updateDisplay();
-        }
-    }
+                updateDisplay();
+                modal.classList.remove('visible');
 
-    // Toggle timer
-    function toggleTimer() {
-        if (isRunning) {
-            clearInterval(timerId);
-            playIcon.style.display = 'block';
-            pauseIcon.style.display = 'none';
-        } else {
-            timerId = setInterval(timerTick, 1000);
-            playIcon.style.display = 'none';
-            pauseIcon.style.display = 'block';
-        }
-        isRunning = !isRunning;
-    }
+                if (settings.enableNotifications) {
+                    requestNotificationPermission();
+                }
+            });
 
-    // Notification handling
-    function requestNotificationPermission() {
-        if (!('Notification' in window)) {
-            document.getElementById('notificationStatus').textContent = 'Notifications not supported';
-            return;
-        }
-
-        Notification.requestPermission().then(permission => {
-            if (permission === 'granted') {
-                settings.enableNotifications = true;
-            }
-        });
-    }
-
-    function sendNotification(title, body) {
-        if (settings.enableNotifications && Notification.permission === 'granted') {
-            new Notification(title, { body });
-        }
-    }
-
-    // Event Listeners
-    toggleButton.addEventListener('click', toggleTimer);
-
-    focusButton.addEventListener('click', () => {
-        if (mode !== 'focus') {
-            mode = 'focus';
-            timeLeft = settings.focusTime * 60;
-            totalTime = timeLeft;
+            // Initialize
             updateDisplay();
             focusButton.classList.add('active');
-            breakButton.classList.remove('active');
-        }
-    });
-
-    breakButton.addEventListener('click', () => {
-        if (mode !== 'break') {
-            mode = 'break';
-            timeLeft = settings.breakTime * 60;
-            totalTime = timeLeft;
-            updateDisplay();
-            breakButton.classList.add('active');
-            focusButton.classList.remove('active');
-        }
-    });
-
-    // Settings Modal
-    settingsButton.addEventListener('click', () => {
-        modal.classList.add('visible');
-        // Populate current settings
-        document.getElementById('focusTime').value = settings.focusTime;
-        document.getElementById('breakTime').value = settings.breakTime;
-        document.getElementById('trackCycles').checked = settings.trackCycles;
-        document.getElementById('cyclesBeforeLongBreak').value = settings.cyclesBeforeLongBreak;
-        document.getElementById('longBreak').value = settings.longBreak;
-        document.getElementById('enableNotifications').checked = settings.enableNotifications;
-    });
-
-    closeModal.addEventListener('click', () => {
-        modal.classList.remove('visible');
-    });
-
-    saveSettings.addEventListener('click', () => {
-        // Update settings
-        settings.focusTime = parseInt(document.getElementById('focusTime').value);
-        settings.breakTime = parseInt(document.getElementById('breakTime').value);
-        settings.trackCycles = document.getElementById('trackCycles').checked;
-        settings.cyclesBeforeLongBreak = parseInt(document.getElementById('cyclesBeforeLongBreak').value);
-        settings.longBreak = parseInt(document.getElementById('longBreak').value);
-        settings.enableNotifications = document.getElementById('enableNotifications').checked;
-
-        // Reset timer with new settings
-        timeLeft = (mode === 'focus' ? settings.focusTime : settings.breakTime) * 60;
-        totalTime = timeLeft;
-        updateDisplay();
-        modal.classList.remove('visible');
-
-        if (settings.enableNotifications) {
-            requestNotificationPermission();
-        }
-    });
-
-    // Initialize
-    updateDisplay();
-    focusButton.classList.add('active');
-});
-
+        });
+    </script>
+</body>
+</html>
 
