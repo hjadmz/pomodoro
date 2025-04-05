@@ -316,33 +316,6 @@
             cursor: pointer;
         }
 
-        .notification-status {
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
-            color: var(--warning-color);
-            display: none;
-        }
-
-        .notification-status.visible {
-            display: block;
-        }
-
-        .error-message {
-            color: var(--error-color);
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
-            display: none;
-        }
-
-        .error-message.visible {
-            display: block;
-        }
-
-        .disabled {
-            opacity: 0.5;
-            pointer-events: none;
-        }
-
         .save-button {
             width: 100%;
             padding: 0.75rem;
@@ -391,6 +364,11 @@
             }
         }
 
+        /* Hide elements that aren't supported on the current device */
+        .device-hidden {
+            display: none !important;
+        }
+
         @media (max-width: 480px) {
             .container {
                 padding: 1.5rem;
@@ -407,6 +385,12 @@
 
             .modal-content {
                 padding: 1.5rem;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+
+            .setting-group {
+                margin-bottom: 1rem;
             }
 
             .tooltip {
@@ -419,6 +403,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="mode-buttons">
@@ -470,13 +455,11 @@
             <div class="setting-group">
                 <label for="focusTime">Focus Time (minutes)</label>
                 <input type="number" id="focusTime" min="1" max="60" value="25">
-                <div class="error-message" id="focusTime-error"></div>
             </div>
 
             <div class="setting-group">
                 <label for="breakTime">Break Time (minutes)</label>
                 <input type="number" id="breakTime" min="1" max="60" value="5">
-                <div class="error-message" id="breakTime-error"></div>
             </div>
 
             <div class="setting-group notification-setting">
@@ -488,13 +471,10 @@
                             <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
                         </svg>
                         <div class="tooltip">
-                            Notifications may not work if you have ad blockers or privacy extensions,
-                            DNS-level blocking, browser notifications disabled, system notifications 
-                            disabled, or antivirus blocking notifications
+                            Notifications may not be available on all devices and browsers
                         </div>
                     </div>
                 </div>
-                <div class="notification-status" id="notificationStatus"></div>
             </div>
 
             <div class="setting-group checkbox-group">
@@ -502,17 +482,15 @@
                 <label for="trackCycles">Track Cycles</label>
             </div>
 
-            <div id="cycleSettings" class="disabled">
+            <div id="cycleSettings">
                 <div class="setting-group">
                     <label for="cyclesBeforeLongBreak">Cycles Before Long Break</label>
                     <input type="number" id="cyclesBeforeLongBreak" min="1" max="10" value="4">
-                    <div class="error-message" id="cyclesBeforeLongBreak-error"></div>
                 </div>
 
                 <div class="setting-group">
                     <label for="longBreak">Long Break Time (minutes)</label>
                     <input type="number" id="longBreak" min="1" max="60" value="15">
-                    <div class="error-message" id="longBreak-error"></div>
                 </div>
             </div>
 
@@ -523,6 +501,7 @@
     <div id="toast" class="toast"></div>
 
 <script>
+    // Initial settings and state
     let settings = {
         focusTime: 25,
         breakTime: 5,
@@ -539,6 +518,20 @@
     let currentCycle = 0;
     let timerId = null;
 
+    // Device capability detection
+    function getDeviceCapabilities() {
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const hasNotificationSupport = 'Notification' in window;
+        
+        return {
+            isMobile,
+            isIOS,
+            hasNotificationSupport,
+            canUseNotifications: hasNotificationSupport && !isIOS
+        };
+    }
+
     // DOM Elements
     const timeDisplay = document.getElementById('timeDisplay');
     const cycleDisplay = document.getElementById('cycleDisplay');
@@ -554,7 +547,6 @@
     const progressRing = document.querySelector('.progress-ring__path');
     const notificationCheckbox = document.getElementById('enableNotifications');
     const notificationSetting = document.querySelector('.notification-setting');
-    const notificationStatus = document.getElementById('notificationStatus');
     const toast = document.getElementById('toast');
 
     // Progress ring setup
@@ -563,12 +555,7 @@
     progressRing.style.strokeDasharray = `${circumference} ${circumference}`;
     progressRing.style.strokeDashoffset = circumference;
 
-    // Mobile detection
-    function isMobileDevice() {
-        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    }
-
-    // Toast notification function
+    // Utility functions
     function showToast(message, duration = 3000) {
         toast.textContent = message;
         toast.classList.add('visible');
@@ -577,7 +564,6 @@
         }, duration);
     }
 
-    // Format time for buttons (1 m, 5 m, 1 h)
     function formatTimeForButtons(minutes) {
         if (minutes >= 60) {
             return "1 h";
@@ -585,7 +571,6 @@
         return `${minutes} m`;
     }
 
-    // Format time for notifications (1 minute, 5 minutes, 1 hour)
     function formatTimeForNotification(minutes) {
         if (minutes >= 60) {
             return "1 hour";
@@ -593,132 +578,87 @@
         return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
     }
 
-    // Enhanced Notification Functions
-    async function checkNotificationSupport() {
-        if (!('Notification' in window)) {
-            notificationStatus.textContent = 'This browser does not support desktop notifications';
-            notificationStatus.classList.add('visible');
-            notificationCheckbox.disabled = true;
-            return false;
-        }
-
-        if (Notification.permission === 'denied') {
-            notificationStatus.textContent = 'Notifications are blocked. Please enable them in your browser settings.';
-            notificationStatus.classList.add('visible');
-            notificationCheckbox.disabled = true;
-            return false;
-        }
-
-        return true;
-    }
-
-    async function requestNotificationPermission() {
-        try {
-            if (!await checkNotificationSupport()) {
-                notificationCheckbox.checked = false;
-                settings.enableNotifications = false;
-                return false;
-            }
-
-            if (Notification.permission === 'granted') {
-                notificationStatus.classList.remove('visible');
-                return true;
-            }
-
-            const permission = await Notification.requestPermission();
-            
-            if (permission === 'granted') {
-                notificationStatus.classList.remove('visible');
-                new Notification("Pomodoro Timer", {
-                    body: "Notifications are now enabled! You'll be notified when your sessions end.",
-                    icon: settings.notificationIcon
-                });
-                return true;
-            } else {
-                notificationCheckbox.checked = false;
-                settings.enableNotifications = false;
-                if (permission === 'denied') {
-                    notificationStatus.textContent = 'Notifications are blocked. Please enable them in your browser settings.';
-                    notificationStatus.classList.add('visible');
-                    showToast('Please enable notifications in your browser settings to receive alerts.');
-                }
-                return false;
-            }
-        } catch (error) {
-            console.error('Error requesting notification permission:', error);
-            notificationStatus.textContent = 'There was an error setting up notifications. Please try again.';
-            notificationStatus.classList.add('visible');
-            notificationCheckbox.checked = false;
-            settings.enableNotifications = false;
-            return false;
-        }
-    }
-
-    async function setupNotifications() {
-        if (isMobileDevice()) {
-            notificationSetting.classList.remove('visible');
-            settings.enableNotifications = false;
-            return;
-        }
-
-        notificationSetting.classList.add('visible');
-        
-        if (Notification.permission === 'granted') {
-            notificationCheckbox.checked = settings.enableNotifications;
-            notificationCheckbox.disabled = false;
-            notificationStatus.classList.remove('visible');
-        } else if (Notification.permission === 'denied') {
-            notificationCheckbox.checked = false;
-            notificationCheckbox.disabled = true;
-            settings.enableNotifications = false;
-            notificationStatus.textContent = 'Notifications are blocked. Please enable them in your browser settings.';
-            notificationStatus.classList.add('visible');
-        } else {
-            notificationCheckbox.checked = false;
-            settings.enableNotifications = false;
-            notificationStatus.classList.remove('visible');
-        }
-    }
-
-    function sendNotification(title, body) {
-        if (!settings.enableNotifications || Notification.permission !== 'granted') return;
-
-        try {
-            const notification = new Notification(title, {
-                body: body,
-                icon: settings.notificationIcon,
-                badge: settings.notificationIcon,
-                silent: false,
-                requireInteraction: false
-            });
-
-            setTimeout(() => notification.close(), 5000);
-
-            notification.onclick = function(event) {
-                event.preventDefault();
-                window.focus();
-                notification.close();
-            };
-        } catch (error) {
-            console.error('Error sending notification:', error);
-            showToast('Failed to send notification');
-        }
-    }
-
-    function updatePlayPauseIcon() {
-        document.querySelector('.play-icon').style.display = isRunning ? 'none' : 'block';
-        document.querySelector('.pause-icon').style.display = isRunning ? 'block' : 'none';
-    }
-
-    function setProgress(percent) {
-        const offset = circumference - (percent / 100 * circumference);
-        progressRing.style.strokeDashoffset = offset;
-    }
-
     function formatTime(seconds) {
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = seconds % 60;
         return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
+
+    // Notification functions
+    async function setupNotifications() {
+        const capabilities = getDeviceCapabilities();
+        
+        if (!capabilities.canUseNotifications) {
+            notificationSetting.style.display = 'none';
+            settings.enableNotifications = false;
+            return;
+        }
+        
+        notificationSetting.style.display = 'block';
+        
+        if (Notification.permission === 'granted') {
+            notificationCheckbox.checked = settings.enableNotifications;
+            notificationCheckbox.disabled = false;
+        } else {
+            notificationCheckbox.checked = false;
+            settings.enableNotifications = false;
+        }
+    }
+
+    async function requestNotificationPermission() {
+        const capabilities = getDeviceCapabilities();
+        
+        if (!capabilities.canUseNotifications) {
+            return false;
+        }
+
+        if (Notification.permission === 'granted') {
+            return true;
+        }
+
+        try {
+            const permission = await Notification.requestPermission();
+            return permission === 'granted';
+        } catch (error) {
+            console.error('Error requesting notification permission:', error);
+            return false;
+        }
+    }
+
+    function sendNotification(title, body) {
+        const capabilities = getDeviceCapabilities();
+        
+        if (!capabilities.canUseNotifications || !settings.enableNotifications) {
+            return;
+        }
+
+        if (Notification.permission === 'granted') {
+            try {
+                const notification = new Notification(title, {
+                    body: body,
+                    icon: settings.notificationIcon,
+                    badge: settings.notificationIcon,
+                    silent: false,
+                    requireInteraction: false
+                });
+                
+                setTimeout(() => notification.close(), 5000);
+                
+                notification.onclick = function(event) {
+                    event.preventDefault();
+                    window.focus();
+                    notification.close();
+                };
+            } catch (error) {
+                console.error('Error sending notification:', error);
+            }
+        }
+    }
+
+    // Timer functions
+    function setProgress(percent) {
+        const offset = circumference - (percent / 100 * circumference);
+        progressRing.style.strokeDashoffset = offset;
     }
 
     function updateDisplay() {
@@ -758,7 +698,7 @@
                 if (settings.trackCycles) {
                     currentCycle = (currentCycle + 1) % settings.cyclesBeforeLongBreak;
                 }
-                const breakDuration = (currentCycle >= settings.cyclesBeforeLongBreak - 1 && settings.trackCycles) ? 
+                const breakDuration = (currentCycle === 0 && settings.trackCycles) ? 
                     settings.longBreak : settings.breakTime;
                 timeLeft = breakDuration * 60;
                 
@@ -785,36 +725,11 @@
         }
     }
 
-    function validateInput(input) {
-        const value = input.value;
-        const errorElement = document.getElementById(`${input.id}-error`);
-        
-        input.classList.remove('error');
-        errorElement.classList.remove('visible');
-        
-        if (!value || !/^\d+$/.test(value)) {
-            errorElement.textContent = 'Please enter a valid number';
-            errorElement.classList.add('visible');
-            return false;
-        }
-        
-        const numValue = parseInt(value);
-        const min = parseInt(input.getAttribute('min'));
-        const max = parseInt(input.getAttribute('max'));
-        
-        if (numValue < min || numValue > max) {
-            errorElement.textContent = `Value must be between ${min} and ${max}`;
-            errorElement.classList.add('visible');
-            return false;
-        }
-        
-        return true;
-    }
-
-    // Event Listeners
+    // Event listeners
     toggleButton.addEventListener('click', () => {
         isRunning = !isRunning;
-        updatePlayPauseIcon();
+        document.querySelector('.play-icon').style.display = isRunning ? 'none' : 'block';
+        document.querySelector('.pause-icon').style.display = isRunning ? 'block' : 'none';
         
         if (isRunning) {
             timerId = setInterval(timerTick, 1000);
@@ -845,12 +760,18 @@
     });
 
     settingsButton.addEventListener('click', () => {
+        const capabilities = getDeviceCapabilities();
+        
         document.getElementById('focusTime').value = settings.focusTime;
         document.getElementById('breakTime').value = settings.breakTime;
         document.getElementById('longBreak').value = settings.longBreak;
         document.getElementById('trackCycles').checked = settings.trackCycles;
-        document.getElementById('enableNotifications').checked = settings.enableNotifications;
         document.getElementById('cyclesBeforeLongBreak').value = settings.cyclesBeforeLongBreak;
+        
+        if (capabilities.canUseNotifications) {
+            document.getElementById('enableNotifications').checked = settings.enableNotifications;
+        }
+        
         cycleSettings.classList.toggle('disabled', !settings.trackCycles);
         settingsModal.classList.add('visible');
     });
@@ -877,22 +798,35 @@
     });
 
     saveButton.addEventListener('click', () => {
-        const inputs = document.querySelectorAll('#settingsModal input[type="number"]');
+        const focusTimeInput = document.getElementById('focusTime');
+        const breakTimeInput = document.getElementById('breakTime');
+        const longBreakInput = document.getElementById('longBreak');
+        const cyclesInput = document.getElementById('cyclesBeforeLongBreak');
+        
+        // Validate inputs
+        const inputs = [focusTimeInput, breakTimeInput, longBreakInput, cyclesInput];
         let isValid = true;
-
+        
         inputs.forEach(input => {
-            if (!validateInput(input)) {
+            const value = parseInt(input.value);
+            const min = parseInt(input.getAttribute('min'));
+            const max = parseInt(input.getAttribute('max'));
+            
+            if (isNaN(value) || value < min || value > max) {
                 isValid = false;
+                input.classList.add('error');
+            } else {
+                input.classList.remove('error');
             }
         });
 
         if (isValid) {
-            settings.focusTime = parseInt(document.getElementById('focusTime').value);
-            settings.breakTime = parseInt(document.getElementById('breakTime').value);
-            settings.longBreak = parseInt(document.getElementById('longBreak').value);
-            settings.trackCycles = document.getElementById('trackCycles').checked;
-            settings.enableNotifications = document.getElementById('enableNotifications').checked;
-            settings.cyclesBeforeLongBreak = parseInt(document.getElementById('cyclesBeforeLongBreak').value);
+            settings.focusTime = parseInt(focusTimeInput.value);
+            settings.breakTime = parseInt(breakTimeInput.value);
+            settings.longBreak = parseInt(longBreakInput.value);
+            settings.trackCycles = trackCyclesCheckbox.checked;
+            settings.cyclesBeforeLongBreak = parseInt(cyclesInput.value);
+            settings.enableNotifications = notificationCheckbox?.checked ?? false;
 
             if (mode === 'focus') {
                 timeLeft = settings.focusTime * 60;
