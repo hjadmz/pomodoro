@@ -494,6 +494,8 @@
 
     <script>
        // Settings object to store timer configurations
+
+// Settings object to store timer configurations
 let settings = {
     focusTime: 25,
     breakTime: 5,
@@ -512,23 +514,33 @@ let timerId = null;
 let isRunning = false;
 
 // DOM Elements
-const timeDisplay = document.getElementById('time-display');
-const cycleDisplay = document.getElementById('cycle-display');
-const startButton = document.getElementById('start-button');
-const resetButton = document.getElementById('reset-button');
-const focusButton = document.getElementById('focus-button');
-const breakButton = document.getElementById('break-button');
-const settingsButton = document.getElementById('settings-button');
-const settingsModal = document.getElementById('settings-modal');
-const closeSettingsButton = document.getElementById('close-settings');
-const saveSettingsButton = document.getElementById('save-settings');
-const progressRing = document.querySelector('.progress-ring-circle');
+const timeDisplay = document.getElementById('timeDisplay');
+const cycleDisplay = document.getElementById('cycleDisplay');
+const toggleButton = document.getElementById('toggleButton');
+const resetButton = document.getElementById('resetButton');
+const focusButton = document.getElementById('focusButton');
+const breakButton = document.getElementById('breakButton');
+const settingsButton = document.getElementById('settingsButton');
+const settingsModal = document.getElementById('settingsModal');
+const closeSettingsButton = document.querySelector('.close-modal');
+const saveSettingsButton = document.querySelector('.save-button');
+const progressRing = document.querySelector('.progress-ring__path');
+const playIcon = document.querySelector('.play-icon');
+const pauseIcon = document.querySelector('.pause-icon');
+
+// Calculate progress ring properties
 const radius = progressRing.r.baseVal.value;
 const circumference = radius * 2 * Math.PI;
 
 // Initialize progress ring
 progressRing.style.strokeDasharray = `${circumference} ${circumference}`;
 progressRing.style.strokeDashoffset = circumference;
+
+// Function to toggle play/pause icons
+function togglePlayPauseIcon(isPlaying) {
+    playIcon.style.display = isPlaying ? 'none' : 'block';
+    pauseIcon.style.display = isPlaying ? 'block' : 'none';
+}
 
 // Function to format time as MM:SS
 function formatTime(seconds) {
