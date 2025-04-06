@@ -6,7 +6,310 @@
     <title>Pomodoro Timer</title>
     <link rel="icon" type="image/png" href="icon-180.png">
     <style>
-        /* CSS will be in Part 2 */
+        :root {
+            --primary-color: #4a90e2;
+            --background-color: #f5f5f5;
+            --text-color: #333;
+            --border-color: #ddd;
+            --error-color: #e74c3c;
+            --success-color: #2ecc71;
+            --modal-background: rgba(0, 0, 0, 0.5);
+            --button-hover: #357abd;
+            --button-active: #2a62a3;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .mode-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .mode-button {
+            flex: 1;
+            padding: 0.75rem;
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            background: transparent;
+            color: var(--primary-color);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mode-button.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .timer-display {
+            position: relative;
+            width: 100%;
+            padding-bottom: 100%;
+            margin: 2rem 0;
+        }
+
+        .timer-circle {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring__circle {
+            fill: none;
+            stroke: var(--border-color);
+            stroke-width: 4;
+        }
+
+        .progress-ring__path {
+            fill: none;
+            stroke: var(--primary-color);
+            stroke-width: 4;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.3s ease;
+        }
+
+        .timer-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .time {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .cycle-count {
+            font-size: 1rem;
+            color: #666;
+            display: none;
+        }
+
+        .control-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .control-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+        }
+
+        .control-button:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--modal-background);
+            z-index: 1000;
+        }
+
+        .modal.visible {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .setting-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .setting-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .setting-group input[type="number"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .cycle-settings-group {
+            margin-left: 28px;
+            margin-top: 0.5rem;
+            transition: opacity 0.3s ease;
+            position: relative;
+            padding-left: 1rem;
+        }
+
+        .cycle-settings-group.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .cycle-settings-group::before {
+            content: '';
+            display: block;
+            width: 2px;
+            height: calc(100% - 1rem);
+            background-color: var(--border-color);
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        .error-message {
+            color: var(--error-color);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .error-message.visible {
+            display: block;
+        }
+
+        .notification-setting {
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .notification-setting.visible {
+            display: block;
+        }
+
+        .notification-status {
+            color: var(--error-color);
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .notification-status.visible {
+            display: block;
+        }
+
+        .save-button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .save-button:hover {
+            background-color: var(--button-hover);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--success-color);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .toast.visible {
+            opacity: 1;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 1.5rem;
+            }
+
+            .time {
+                font-size: 2.5rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -104,314 +407,9 @@
     </div>
 
     <div id="toast" class="toast"></div>
-</body>
-</html>
-:root {
-    --primary-color: #4a90e2;
-    --background-color: #f5f5f5;
-    --text-color: #333;
-    --border-color: #ddd;
-    --error-color: #e74c3c;
-    --success-color: #2ecc71;
-    --modal-background: rgba(0, 0, 0, 0.5);
-    --button-hover: #357abd;
-    --button-active: #2a62a3;
-}
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-    background-color: var(--background-color);
-    color: var(--text-color);
-    line-height: 1.6;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.container {
-    background-color: white;
-    border-radius: 20px;
-    padding: 2rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: 90%;
-    max-width: 400px;
-}
-
-.mode-buttons {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
-}
-
-.mode-button {
-    flex: 1;
-    padding: 0.75rem;
-    border: 2px solid var(--primary-color);
-    border-radius: 10px;
-    background: transparent;
-    color: var(--primary-color);
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.mode-button.active {
-    background-color: var(--primary-color);
-    color: white;
-}
-
-.timer-display {
-    position: relative;
-    width: 100%;
-    padding-bottom: 100%;
-    margin: 2rem 0;
-}
-
-.timer-circle {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-}
-
-.progress-ring {
-    transform: rotate(-90deg);
-}
-
-.progress-ring__circle {
-    fill: none;
-    stroke: var(--border-color);
-    stroke-width: 4;
-}
-
-.progress-ring__path {
-    fill: none;
-    stroke: var(--primary-color);
-    stroke-width: 4;
-    stroke-linecap: round;
-    transition: stroke-dashoffset 0.3s ease;
-}
-
-.timer-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-}
-
-.time {
-    font-size: 3rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-}
-
-.cycle-count {
-    font-size: 1rem;
-    color: #666;
-    display: none;
-}
-
-.control-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-}
-
-.control-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 50%;
-    transition: background-color 0.3s ease;
-}
-
-.control-button:hover {
-    background-color: rgba(0, 0, 0, 0.1);
-}
-
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: var(--modal-background);
-    z-index: 1000;
-}
-
-.modal.visible {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.modal-content {
-    background-color: white;
-    padding: 2rem;
-    border-radius: 15px;
-    width: 90%;
-    max-width: 500px;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-}
-
-.modal-title {
-    font-size: 1.5rem;
-    font-weight: 600;
-}
-
-.close-modal {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0.5rem;
-}
-
-.setting-group {
-    margin-bottom: 1.5rem;
-}
-
-.setting-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-}
-
-.setting-group input[type="number"] {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 1rem;
-}
-
-.checkbox-group {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-.cycle-settings-group {
-    margin-left: 28px;
-    margin-top: 0.5rem;
-    transition: opacity 0.3s ease;
-    position: relative;
-    padding-left: 1rem;
-}
-
-.cycle-settings-group.disabled {
-    opacity: 0.5;
-    pointer-events: none;
-}
-
-.cycle-settings-group::before {
-    content: '';
-    display: block;
-    width: 2px;
-    height: calc(100% - 1rem);
-    background-color: var(--border-color);
-    position: absolute;
-    left: 0;
-    top: 0;
-}
-
-.error-message {
-    color: var(--error-color);
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
-    display: none;
-}
-
-.error-message.visible {
-    display: block;
-}
-
-.notification-setting {
-    margin-bottom: 1.5rem;
-    display: none;
-}
-
-.notification-setting.visible {
-    display: block;
-}
-
-.notification-status {
-    color: var(--error-color);
-    font-size: 0.875rem;
-    margin-top: 0.5rem;
-    display: none;
-}
-
-.notification-status.visible {
-    display: block;
-}
-
-.save-button {
-    width: 100%;
-    padding: 0.75rem;
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.save-button:hover {
-    background-color: var(--button-hover);
-}
-
-.toast {
-    position: fixed;
-    bottom: 2rem;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: var(--success-color);
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-weight: 500;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-}
-
-.toast.visible {
-    opacity: 1;
-}
-
-@media (max-width: 480px) {
-    .container {
-        padding: 1.5rem;
-    }
-
-    .time {
-        font-size: 2.5rem;
-    }
-}
-
-// Timer state
+    <script>
+        // Timer state
 let timeLeft = 25 * 60;
 let timerId = null;
 let isRunning = false;
@@ -710,4 +708,6 @@ if ('Notification' in window) {
         Notification.requestPermission();
     }
 }
-
+    </script>
+</body>
+</html>
