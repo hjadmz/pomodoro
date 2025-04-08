@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#111827" media="(prefers-color-scheme: dark)">
     <title>Pomodoro Timer</title>
     <style>
         :root {
@@ -277,25 +279,85 @@
             cursor: pointer;
         }
 
-        .notification-status {
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
-            color: var(--warning-color);
+        .checkbox-group input[type="checkbox"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .checkbox-group input[type="checkbox"]:disabled + label {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .modal-footer {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        .button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 44px;
+        }
+
+        .button-secondary {
+            background-color: var(--secondary-bg);
+            color: var(--text-color);
+        }
+
+        .button-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .button:hover {
+            opacity: 0.9;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             display: none;
+            z-index: 100;
         }
 
-        .notification-status.visible {
+        .toast.visible {
             display: block;
+            animation: slideUp 0.3s ease-out;
         }
 
-        .error-message {
+        @keyframes slideUp {
+            from {
+                transform: translate(-50%, 100%);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+        }
+
+        .error {
             color: var(--error-color);
             font-size: 0.875rem;
-            margin-top: 0.25rem;
+            margin-top: 0.5rem;
             display: none;
         }
 
-        .error-message.visible {
+        .error.visible {
             display: block;
         }
 
@@ -303,686 +365,357 @@
             opacity: 0.5;
             pointer-events: none;
         }
-
-        .save-button {
-            width: 100%;
-            padding: 0.75rem;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            margin-top: 1.5rem;
-            min-height: 44px;
-        }
-
-        .save-button:hover {
-            background-color: #2563eb;
-        }
-
-        .notification-setting {
-            display: none;
-        }
-
-        .notification-setting.visible {
-            display: block;
-        }
-
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            padding: 1rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            display: none;
-            z-index: 1000;
-            max-width: 300px;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        .toast.visible {
-            display: block;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                padding: 1.5rem;
-            }
-
-            .timer-circle {
-                width: 12rem;
-                height: 12rem;
-            }
-
-            .time {
-                font-size: 2.5rem;
-            }
-
-            .modal-content {
-                padding: 1.5rem;
-            }
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="mode-buttons">
-            <button id="focusButton" class="mode-button active">Focus 25m</button>
-            <button id="breakButton" class="mode-button">Break 5m</button>
+            <button class="mode-button active" id="focusButton">Focus</button>
+            <button class="mode-button" id="breakButton">Break</button>
         </div>
 
         <div class="timer-display">
             <div class="timer-circle">
-                <svg class="progress-ring" width="100%" height="100%" viewBox="0 0 100 100">
-                    <circle class="progress-ring__circle" cx="50" cy="50" r="45"/>
-                    <circle class="progress-ring__path" cx="50" cy="50" r="45"/>
+                <svg class="progress-ring" width="256" height="256">
+                    <circle class="progress-ring__circle" cx="128" cy="128" r="120"/>
+                    <circle class="progress-ring__path" cx="128" cy="128" r="120"/>
                 </svg>
                 <div class="timer-content">
-                    <div id="timeDisplay" class="time">25:00</div>
-                    <div id="cycleDisplay" class="cycle-count">Cycle 0/4</div>
+                    <div class="time" id="timeDisplay">25:00</div>
+                    <div class="cycle-count" id="cycleDisplay">Cycle 0/4</div>
                 </div>
             </div>
         </div>
 
         <div class="control-buttons">
-            <button id="settingsButton" class="control-button">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            <button class="control-button" id="settingsButton">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                    <circle cx="12" cy="12" r="3"/>
                 </svg>
             </button>
-            <button id="toggleButton" class="control-button">
-                <svg class="play-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                </svg>
-                <svg class="pause-icon" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="6" y="4" width="4" height="16"></rect>
-                    <rect x="14" y="4" width="4" height="16"></rect>
+            <button class="control-button" id="toggleButton">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
                 </svg>
             </button>
-            <button id="resetButton" class="control-button">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 2v6h6"></path>
-                    <path d="M3 13a9 9 0 1 0 3-7.7L3 8"></path>
+            <button class="control-button" id="resetButton">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 2v6h6"/>
+                    <path d="M3 13a9 9 0 1 0 3-7.7L3 8"/>
                 </svg>
             </button>
         </div>
     </div>
 
-    <div id="settingsModal" class="modal">
+    <div class="modal" id="settingsModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title">Settings</h2>
-                <button class="close-modal">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                <button class="close-modal" id="closeModal">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
                     </svg>
                 </button>
             </div>
-
             <div class="setting-group">
-                <label for="focusTime">Focus Duration (minutes)</label>
-                <input type="number" id="focusTime" min="1" max="120" value="25">
-                <div id="focusTime-error" class="error-message"></div>
+                <label for="focusTime">Focus Time (minutes)</label>
+                <input type="number" id="focusTime" min="1" max="60" value="25">
+                <div class="error" id="focusTimeError">Please enter a value between 1 and 60</div>
             </div>
-
             <div class="setting-group">
-                <label for="breakTime">Short Break Duration (minutes)</label>
-                <input type="number" id="breakTime" min="1" max="30" value="5">
-                <div id="breakTime-error" class="error-message"></div>
+                <label for="breakTime">Break Time (minutes)</label>
+                <input type="number" id="breakTime" min="1" max="60" value="5">
+                <div class="error" id="breakTimeError">Please enter a value between 1 and 60</div>
             </div>
-
             <div class="setting-group">
-                <label for="longBreak">Long Break Duration (minutes)</label>
-                <input type="number" id="longBreak" min="1" max="60" value="15">
-                <div id="longBreak-error" class="error-message"></div>
+                <label for="cycles">Number of Cycles</label>
+                <input type="number" id="cycles" min="1" max="10" value="4">
+                <div class="error" id="cyclesError">Please enter a value between 1 and 10</div>
             </div>
-
             <div class="setting-group">
                 <div class="checkbox-group">
-                    <input type="checkbox" id="trackCycles">
-                    <label for="trackCycles">Track Pomodoro Cycles</label>
+                    <input type="checkbox" id="autoStartBreaks">
+                    <label for="autoStartBreaks">Auto-start Breaks</label>
                 </div>
-            </div>
-
-            <div id="cycleSettings" class="setting-group">
-                <label for="cyclesBeforeLongBreak">Cycles before Long Break</label>
-                <input type="number" id="cyclesBeforeLongBreak" min="1" max="10" value="4">
-                <div id="cyclesBeforeLongBreak-error" class="error-message"></div>
-            </div>
-
-            <div class="setting-group notification-setting">
                 <div class="checkbox-group">
-                    <input type="checkbox" id="enableNotifications">
-                    <label for="enableNotifications">Enable Notifications</label>
+                    <input type="checkbox" id="autoStartPomodoros">
+                    <label for="autoStartPomodoros">Auto-start Pomodoros</label>
                 </div>
-                <div id="notificationStatus" class="notification-status"></div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="notifications">
+                    <label for="notifications">Show Desktop Notifications</label>
+                </div>
             </div>
-
-            <button class="save-button">Save Settings</button>
+            <div class="modal-footer">
+                <button class="button button-secondary" id="cancelSettings">Cancel</button>
+                <button class="button button-primary" id="saveSettings">Save Settings</button>
+            </div>
         </div>
     </div>
 
-    <div id="toast" class="toast"></div>
+    <div class="toast" id="toast"></div>
 
     <script>
-        let settings = {
-            focusTime: 25,
-            breakTime: 5,
-            longBreak: 15,
-            trackCycles: true,
-            cyclesBeforeLongBreak: 4,
-            enableNotifications: false,
-            notificationIcon: 'icon-180.png'
-        };
-
-        let isRunning = false;
-        let mode = 'focus';
-        let timeLeft = settings.focusTime * 60;
-        let currentCycle = 0;
-        let timerId = null;
-        let isFirstStart = true;
-        let startTime = null;
-        let expectedTime = null;
-        let lastUpdateTime = Date.now();
-
-        // DOM Elements
-        const timeDisplay = document.getElementById('timeDisplay');
-        const cycleDisplay = document.getElementById('cycleDisplay');
-        const toggleButton = document.getElementById('toggleButton');
-        const focusButton = document.getElementById('focusButton');
-        const breakButton = document.getElementById('breakButton');
-        const settingsButton = document.getElementById('settingsButton');
-        const resetButton = document.getElementById('resetButton');
-        const settingsModal = document.getElementById('settingsModal');
-        const closeModalButton = document.querySelector('.close-modal');
-        const saveButton = document.querySelector('.save-button');
-        const cycleSettings = document.getElementById('cycleSettings');
-        const trackCyclesCheckbox = document.getElementById('trackCycles');
-        const progressRing = document.querySelector('.progress-ring__path');
-        const notificationCheckbox = document.getElementById('enableNotifications');
-        const notificationSetting = document.querySelector('.notification-setting');
-        const notificationStatus = document.getElementById('notificationStatus');
-        const toast = document.getElementById('toast');
-
-        // Progress ring setup
-        const radius = 45;
-        const circumference = radius * 2 * Math.PI;
-        progressRing.style.strokeDasharray = `${circumference} ${circumference}`;
-        progressRing.style.strokeDashoffset = circumference;
-
-        // Store timer state in localStorage
-        function saveTimerState() {
-            const state = {
-                isRunning,
-                mode,
-                timeLeft,
-                currentCycle,
-                isFirstStart,
-                startTime: Date.now(),
-                settings
-            };
-            localStorage.setItem('timerState', JSON.stringify(state));
-        }
-
-        // Load timer state from localStorage
-        function loadTimerState() {
-            const savedState = localStorage.getItem('timerState');
-            if (savedState) {
-                const state = JSON.parse(savedState);
-                const elapsedTime = Math.floor((Date.now() - state.startTime) / 1000);
-                
-                settings = state.settings;
-                mode = state.mode;
-                currentCycle = state.currentCycle;
-                isFirstStart = state.isFirstStart;
-                
-                if (state.isRunning) {
-                    timeLeft = Math.max(0, state.timeLeft - elapsedTime);
-                    if (timeLeft > 0) {
-                        isRunning = true;
-                        startTimer();
-                    } else {
-                        handleTimerComplete();
-                    }
-                } else {
-                    timeLeft = state.timeLeft;
-                }
-                
-                updateDisplay();
-                updateModeButtons();
-                updatePlayPauseIcon();
-            }
-        }
-
-        function isMobileDevice() {
-            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        }
-
-        function showToast(message, duration = 3000) {
-            toast.textContent = message;
-            toast.classList.add('visible');
-            setTimeout(() => {
-                toast.classList.remove('visible');
-            }, duration);
-        }
-
-        function formatTimeForButtons(minutes) {
-            if (minutes >= 60) {
-                return "1 h";
-            }
-            return `${minutes} m`;
-        }
-
-        function updateModeButtonsState() {
-            const disabled = isRunning;
-            focusButton.style.opacity = disabled ? '0.5' : '1';
-            breakButton.style.opacity = disabled ? '0.5' : '1';
-            focusButton.style.cursor = disabled ? 'not-allowed' : 'pointer';
-            breakButton.style.cursor = disabled ? 'not-allowed' : 'pointer';
-        }
-
-        async function checkNotificationSupport() {
-            if (!('Notification' in window)) {
-                notificationStatus.textContent = 'This browser does not support desktop notifications';
-                notificationStatus.classList.add('visible');
-                notificationCheckbox.disabled = true;
-                return false;
+        class PomodoroTimer {
+            constructor() {
+                this.initialize();
+                this.setupEventListeners();
             }
 
-            if (Notification.permission === 'denied') {
-                notificationStatus.textContent = 'Notifications are blocked. Please enable them in your browser settings.';
-                notificationStatus.classList.add('visible');
-                notificationCheckbox.disabled = true;
-                return false;
+            initialize() {
+                // DOM Elements
+                this.timeDisplay = document.getElementById('timeDisplay');
+                this.cycleDisplay = document.getElementById('cycleDisplay');
+                this.toggleButton = document.getElementById('toggleButton');
+                this.resetButton = document.getElementById('resetButton');
+                this.focusButton = document.getElementById('focusButton');
+                this.breakButton = document.getElementById('breakButton');
+                this.settingsButton = document.getElementById('settingsButton');
+                this.settingsModal = document.getElementById('settingsModal');
+                this.closeModal = document.getElementById('closeModal');
+                this.saveSettings = document.getElementById('saveSettings');
+                this.cancelSettings = document.getElementById('cancelSettings');
+                this.toast = document.getElementById('toast');
+                this.progressRing = document.querySelector('.progress-ring__path');
+
+                // Calculate progress ring circumference
+                const radius = this.progressRing.r.baseVal.value;
+                this.circumference = radius * 2 * Math.PI;
+                this.progressRing.style.strokeDasharray = `${this.circumference} ${this.circumference}`;
+                this.progressRing.style.strokeDashoffset = this.circumference;
+
+                // Timer state
+                this.isRunning = false;
+                this.currentMode = 'focus';
+                this.currentCycle = 0;
+                this.timeRemaining = 0;
+                this.timerId = null;
+
+                // Load settings
+                this.loadSettings();
+                this.resetTimer();
             }
 
-            return true;
-        }
-
-        async function requestNotificationPermission() {
-            try {
-                if (!await checkNotificationSupport()) {
-                    notificationCheckbox.checked = false;
-                    settings.enableNotifications = false;
-                    return false;
-                }
-
-                if (Notification.permission === 'granted') {
-                    notificationStatus.classList.remove('visible');
-                    return true;
-                }
-
-                const permission = await Notification.requestPermission();
-                
-                if (permission === 'granted') {
-                    notificationStatus.classList.remove('visible');
-                    new Notification("Pomodoro Timer", {
-                        body: "Notifications are now enabled! You'll be notified when your sessions end.",
-                        icon: settings.notificationIcon
-                    });
-                    return true;
-                } else {
-                    notificationCheckbox.checked = false;
-                    settings.enableNotifications = false;
-                    if (permission === 'denied') {
-                        notificationStatus.textContent = 'Notifications are blocked. Please enable them in your browser settings.';
-                        notificationStatus.classList.add('visible');
-                        showToast('Please enable notifications in your browser settings to receive alerts.');
-                    }
-                    return false;
-                }
-            } catch (error) {
-                console.error('Error requesting notification permission:', error);
-                notificationStatus.textContent = 'There was an error setting up notifications. Please try again.';
-                notificationStatus.classList.add('visible');
-                notificationCheckbox.checked = false;
-                settings.enableNotifications = false;
-                return false;
-            }
-        }
-
-        function sendNotification(title, body) {
-            if (!settings.enableNotifications || Notification.permission !== 'granted') return;
-
-            try {
-                const notification = new Notification(title, {
-                    body: body,
-                    icon: settings.notificationIcon,
-                    badge: settings.notificationIcon,
-                    silent: false,
-                    requireInteraction: false
-                });
-
-                setTimeout(() => notification.close(), 5000);
-
-                notification.onclick = function(event) {
-                    event.preventDefault();
-                    window.focus();
-                    notification.close();
+            loadSettings() {
+                const defaultSettings = {
+                    focusTime: 25,
+                    breakTime: 5,
+                    cycles: 4,
+                    autoStartBreaks: false,
+                    autoStartPomodoros: false,
+                    notifications: true
                 };
-            } catch (error) {
-                console.error('Error sending notification:', error);
-                showToast('Failed to send notification');
-            }
-        }
 
-        function updatePlayPauseIcon() {
-            document.querySelector('.play-icon').style.display = isRunning ? 'none' : 'block';
-            document.querySelector('.pause-icon').style.display = isRunning ? 'block' : 'none';
-        }
+                this.settings = JSON.parse(localStorage.getItem('pomodoroSettings')) || defaultSettings;
 
-        function setProgress(percent) {
-            const offset = circumference - (percent / 100 * circumference);
-            progressRing.style.strokeDashoffset = offset;
-        }
-
-        function formatTime(seconds) {
-            const minutes = Math.floor(seconds / 60);
-            const remainingSeconds = seconds % 60;
-            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-        }
-
-        function updateDisplay() {
-            timeDisplay.textContent = formatTime(timeLeft);
-            
-            if (settings.trackCycles) {
-                cycleDisplay.textContent = `Cycle ${currentCycle}/${settings.cyclesBeforeLongBreak}`;
-                cycleDisplay.style.display = 'block';
-            } else {
-                cycleDisplay.style.display = 'none';
+                // Update settings inputs
+                document.getElementById('focusTime').value = this.settings.focusTime;
+                document.getElementById('breakTime').value = this.settings.breakTime;
+                document.getElementById('cycles').value = this.settings.cycles;
+                document.getElementById('autoStartBreaks').checked = this.settings.autoStartBreaks;
+                document.getElementById('autoStartPomodoros').checked = this.settings.autoStartPomodoros;
+                document.getElementById('notifications').checked = this.settings.notifications;
             }
 
-            const totalTime = mode === 'focus' ? 
-                settings.focusTime * 60 : 
-                (currentCycle === settings.cyclesBeforeLongBreak ? settings.longBreak : settings.breakTime) * 60;
-            
-            const progress = ((totalTime - timeLeft) / totalTime) * 100;
-            setProgress(progress);
-            
-            // Save state after display update
-            saveTimerState();
-        }
+            saveSettings() {
+                const focusTime = parseInt(document.getElementById('focusTime').value);
+                const breakTime = parseInt(document.getElementById('breakTime').value);
+                const cycles = parseInt(document.getElementById('cycles').value);
 
-        function updateModeButtons() {
-            const breakTime = currentCycle === settings.cyclesBeforeLongBreak ? 
-                settings.longBreak : settings.breakTime;
-            focusButton.textContent = `Focus ${formatTimeForButtons(settings.focusTime)}`;
-            breakButton.textContent = `Break ${formatTimeForButtons(breakTime)}`;
-        }
-
-        function handleTimerComplete() {
-            if (mode === 'focus') {
-                if (isFirstStart) {
-                    currentCycle = 1;
-                    isFirstStart = false;
-                } else if (currentCycle < settings.cyclesBeforeLongBreak) {
-                    currentCycle++;
+                // Validate inputs
+                if (!this.validateSettings(focusTime, breakTime, cycles)) {
+                    return false;
                 }
-                
-                mode = 'break';
-                const isLongBreak = currentCycle === settings.cyclesBeforeLongBreak;
-                timeLeft = isLongBreak ? settings.longBreak * 60 : settings.breakTime * 60;
-                
-                sendNotification(
-                    'Break Time',
-                    `Time for a ${isLongBreak ? 'long' : 'short'} break!`
-                );
-            } else {
-                mode = 'focus';
-                if (currentCycle === settings.cyclesBeforeLongBreak) {
-                    currentCycle = 0;
-                    isFirstStart = true;
-                }
-                timeLeft = settings.focusTime * 60;
-                
-                sendNotification(
-                    'Focus Time',
-                    'Break\'s over! Time to focus.'
-                );
-            }
-            
-            updateModeButtons();
-            updateDisplay();
-            focusButton.classList.toggle('active');
-            breakButton.classList.toggle('active');
-            
-            if (isRunning) {
-                startTimer();
-            }
-        }
 
-        function startTimer() {
-            if (timerId) {
-                clearInterval(timerId);
+                this.settings = {
+                    focusTime,
+                    breakTime,
+                    cycles,
+                    autoStartBreaks: document.getElementById('autoStartBreaks').checked,
+                    autoStartPomodoros: document.getElementById('autoStartPomodoros').checked,
+                    notifications: document.getElementById('notifications').checked
+                };
+
+                localStorage.setItem('pomodoroSettings', JSON.stringify(this.settings));
+                this.resetTimer();
+                this.closeSettingsModal();
+                this.showToast('Settings saved successfully');
+                return true;
             }
 
-            lastUpdateTime = Date.now();
-            timerId = setInterval(() => {
-                const now = Date.now();
-                const delta = Math.floor((now - lastUpdateTime) / 1000);
-                lastUpdateTime = now;
+            validateSettings(focusTime, breakTime, cycles) {
+                let isValid = true;
+                const errors = {
+                    focusTime: document.getElementById('focusTimeError'),
+                    breakTime: document.getElementById('breakTimeError'),
+                    cycles: document.getElementById('cyclesError')
+                };
 
-                if (delta > 0) {
-                    timeLeft = Math.max(0, timeLeft - delta);
-                    updateDisplay();
+                // Reset errors
+                Object.values(errors).forEach(error => error.classList.remove('visible'));
 
-                    if (timeLeft === 0) {
-                        handleTimerComplete();
-                    }
-                }
-            }, 100);  // Update more frequently to catch up with missed time
-        }
-
-        function stopTimer() {
-            if (timerId) {
-                clearInterval(timerId);
-                timerId = null;
-            }
-            saveTimerState();
-        }
-
-        // Event Listeners
-        toggleButton.addEventListener('click', () => {
-            isRunning = !isRunning;
-            updatePlayPauseIcon();
-            updateModeButtonsState();
-            
-            if (isRunning) {
-                startTimer();
-            } else {
-                stopTimer();
-            }
-            saveTimerState();
-        });
-
-        resetButton.addEventListener('click', () => {
-            isRunning = false;
-            timeLeft = mode === 'focus' ? settings.focusTime * 60 : settings.breakTime * 60;
-            updatePlayPauseIcon();
-            updateModeButtonsState();
-            stopTimer();
-            updateDisplay();
-        });
-
-        focusButton.addEventListener('click', () => {
-            if (isRunning) return;
-            if (mode !== 'focus') {
-                mode = 'focus';
-                timeLeft = settings.focusTime * 60;
-                focusButton.classList.add('active');
-                breakButton.classList.remove('active');
-                updateDisplay();
-            }
-        });
-
-        breakButton.addEventListener('click', () => {
-            if (isRunning) return;
-            if (mode !== 'break') {
-                mode = 'break';
-                timeLeft = settings.breakTime * 60;
-                focusButton.classList.remove('active');
-                breakButton.classList.add('active');
-                updateDisplay();
-            }
-        });
-
-        settingsButton.addEventListener('click', () => {
-            document.getElementById('focusTime').value = settings.focusTime;
-            document.getElementById('breakTime').value = settings.breakTime;
-            document.getElementById('longBreak').value = settings.longBreak;
-            document.getElementById('trackCycles').checked = settings.trackCycles;
-            document.getElementById('enableNotifications').checked = settings.enableNotifications;
-            document.getElementById('cyclesBeforeLongBreak').value = settings.cyclesBeforeLongBreak;
-            cycleSettings.classList.toggle('disabled', !settings.trackCycles);
-            settingsModal.classList.add('visible');
-        });
-
-        closeModalButton.addEventListener('click', () => {
-            settingsModal.classList.remove('visible');
-        });
-
-        trackCyclesCheckbox.addEventListener('change', () => {
-            cycleSettings.classList.toggle('disabled', !trackCyclesCheckbox.checked);
-        });
-
-        notificationCheckbox?.addEventListener('change', async function() {
-            if (this.checked) {
-                const permissionGranted = await requestNotificationPermission();
-                if (!permissionGranted) {
-                    this.checked = false;
-                    return;
-                }
-                settings.enableNotifications = true;
-            } else {
-                settings.enableNotifications = false;
-            }
-            saveTimerState();
-        });
-
-        function validateInput(input) {
-            const value = input.value;
-            const errorElement = document.getElementById(`${input.id}-error`);
-            
-            input.classList.remove('error');
-            errorElement.classList.remove('visible');
-            
-            if (!value || !/^\d+$/.test(value)) {
-                errorElement.textContent = 'Please enter a valid number';
-                errorElement.classList.add('visible');
-                return false;
-            }
-            
-            const numValue = parseInt(value);
-            const min = parseInt(input.getAttribute('min'));
-            const max = parseInt(input.getAttribute('max'));
-            
-            if (numValue < min || numValue > max) {
-                errorElement.textContent = `Value must be between ${min} and ${max}`;
-                errorElement.classList.add('visible');
-                return false;
-            }
-            
-            return true;
-        }
-
-        saveButton.addEventListener('click', () => {
-            const inputs = document.querySelectorAll('#settingsModal input[type="number"]');
-            let isValid = true;
-
-            inputs.forEach(input => {
-                if (!validateInput(input)) {
+                if (focusTime < 1 || focusTime > 60) {
+                    errors.focusTime.classList.add('visible');
                     isValid = false;
                 }
-            });
 
-            if (isValid) {
-                settings.focusTime = parseInt(document.getElementById('focusTime').value);
-                settings.breakTime = parseInt(document.getElementById('breakTime').value);
-                settings.longBreak = parseInt(document.getElementById('longBreak').value);
-                settings.trackCycles = document.getElementById('trackCycles').checked;
-                settings.enableNotifications = document.getElementById('enableNotifications').checked;
-                settings.cyclesBeforeLongBreak = parseInt(document.getElementById('cyclesBeforeLongBreak').value);
-
-                if (mode === 'focus') {
-                    timeLeft = settings.focusTime * 60;
-                } else {
-                    timeLeft = (currentCycle === settings.cyclesBeforeLongBreak) ? 
-                        settings.longBreak * 60 : settings.breakTime * 60;
+                if (breakTime < 1 || breakTime > 60) {
+                    errors.breakTime.classList.add('visible');
+                    isValid = false;
                 }
 
-                // Reset cycle count if cycles setting changes
-                if (currentCycle > settings.cyclesBeforeLongBreak) {
-                    currentCycle = 0;
-                    isFirstStart = true;
+                if (cycles < 1 || cycles > 10) {
+                    errors.cycles.classList.add('visible');
+                    isValid = false;
                 }
 
-                updateDisplay();
-                updateModeButtons();
-                settingsModal.classList.remove('visible');
-                showToast('Settings saved successfully');
-                saveTimerState();
+                return isValid;
             }
-        });
 
-        async function setupNotifications() {
-            if ('Notification' in window) {
-                notificationSetting.classList.add('visible');
-                
-                if (Notification.permission === 'granted') {
-                    notificationCheckbox.checked = true;
-                    settings.enableNotifications = true;
-                    notificationStatus.classList.remove('visible');
-                } else if (Notification.permission === 'denied') {
-                    notificationCheckbox.checked = false;
-                    notificationCheckbox.disabled = true;
-                    notificationStatus.textContent = 'Notifications are blocked. Please enable them in your browser settings.';
-                    notificationStatus.classList.add('visible');
+            setupEventListeners() {
+                this.toggleButton.addEventListener('click', () => this.toggleTimer());
+                this.resetButton.addEventListener('click', () => this.resetTimer());
+                this.focusButton.addEventListener('click', () => this.switchMode('focus'));
+                this.breakButton.addEventListener('click', () => this.switchMode('break'));
+                this.settingsButton.addEventListener('click', () => this.openSettingsModal());
+                this.closeModal.addEventListener('click', () => this.closeSettingsModal());
+                this.saveSettings.addEventListener('click', () => this.saveSettings());
+                this.cancelSettings.addEventListener('click', () => this.closeSettingsModal());
+                this.settingsModal.addEventListener('click', (e) => {
+                    if (e.target === this.settingsModal) this.closeSettingsModal();
+                });
+            }
+
+            toggleTimer() {
+                if (this.isRunning) {
+                    this.pauseTimer();
+                } else {
+                    this.startTimer();
                 }
-            } else {
-                notificationSetting.classList.remove('visible');
-                settings.enableNotifications = false;
+            }
+
+            startTimer() {
+                this.isRunning = true;
+                this.updateToggleButton();
+                
+                this.timerId = setInterval(() => {
+                    this.timeRemaining--;
+                    this.updateDisplay();
+
+                    if (this.timeRemaining <= 0) {
+                        this.handleTimerComplete();
+                    }
+                }, 1000);
+            }
+
+            pauseTimer() {
+                this.isRunning = false;
+                this.updateToggleButton();
+                clearInterval(this.timerId);
+            }
+
+            resetTimer() {
+                this.pauseTimer();
+                this.timeRemaining = this.currentMode === 'focus' ? 
+                    this.settings.focusTime * 60 : 
+                    this.settings.breakTime * 60;
+                this.updateDisplay();
+            }
+
+            switchMode(mode) {
+                if (mode === this.currentMode) return;
+
+                this.currentMode = mode;
+                this.focusButton.classList.toggle('active', mode === 'focus');
+                this.breakButton.classList.toggle('active', mode === 'break');
+                this.resetTimer();
+            }
+
+            handleTimerComplete() {
+                this.pauseTimer();
+                
+                if (this.currentMode === 'focus') {
+                    this.currentCycle++;
+                    this.showNotification('Focus session complete!');
+                    
+                    if (this.currentCycle >= this.settings.cycles) {
+                        this.currentCycle = 0;
+                        this.showNotification('All cycles completed!');
+                    } else if (this.settings.autoStartBreaks) {
+                        this.switchMode('break');
+                        this.startTimer();
+                    } else {
+                        this.switchMode('break');
+                    }
+                } else {
+                    this.showNotification('Break time complete!');
+                    if (this.settings.autoStartPomodoros) {
+                        this.switchMode('focus');
+                        this.startTimer();
+                    } else {
+                        this.switchMode('focus');
+                    }
+                }
+            }
+
+            updateDisplay() {
+                const minutes = Math.floor(this.timeRemaining / 60);
+                const seconds = this.timeRemaining % 60;
+                this.timeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                this.cycleDisplay.textContent = `Cycle ${this.currentCycle}/${this.settings.cycles}`;
+
+                // Update progress ring
+                const totalTime = this.currentMode === 'focus' ? 
+                    this.settings.focusTime * 60 : 
+                    this.settings.breakTime * 60;
+                const progress = 1 - (this.timeRemaining / totalTime);
+                const offset = this.circumference - (progress * this.circumference);
+                this.progressRing.style.strokeDashoffset = offset;
+            }
+
+            updateToggleButton() {
+                const icon = this.isRunning ? 
+                    '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>' :
+                    '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+                this.toggleButton.innerHTML = icon;
+            }
+
+            openSettingsModal() {
+                this.settingsModal.classList.add('visible');
+            }
+
+            closeSettingsModal() {
+                this.settingsModal.classList.remove('visible');
+            }
+
+            showToast(message) {
+                this.toast.textContent = message;
+                this.toast.classList.add('visible');
+                setTimeout(() => {
+                    this.toast.classList.remove('visible');
+                }, 3000);
+            }
+
+            async showNotification(message) {
+                if (!this.settings.notifications) return;
+
+                if (Notification.permission === 'granted') {
+                    new Notification('Pomodoro Timer', { body: message });
+                } else if (Notification.permission !== 'denied') {
+                    const permission = await Notification.requestPermission();
+                    if (permission === 'granted') {
+                        new Notification('Pomodoro Timer', { body: message });
+                    }
+                }
             }
         }
 
-        // Handle visibility change
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                if (isRunning) {
-                    stopTimer();
-                }
-            } else {
-                if (isRunning) {
-                    startTimer();
-                }
-            }
+        // Initialize the timer when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new PomodoroTimer();
         });
-
-        // Initialize
-        setupNotifications();
-        loadTimerState();
-        updateDisplay();
-        updateModeButtons();
-        updateModeButtonsState();
-        cycleSettings.classList.toggle('disabled', !settings.trackCycles);
-        trackCyclesCheckbox.checked = settings.trackCycles;
     </script>
 </body>
 </html>
