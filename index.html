@@ -503,13 +503,14 @@
             notificationIcon: 'icon-180.png'
         };
         
-        let lastTimestamp = 0;
         let isRunning = false;
         let mode = 'focus';
         let timeLeft = settings.focusTime * 60;
         let currentCycle = 0;  // Starts at 0
-        let animationFrameId = null;
+        let timerInterval = null;
         let isFirstStart = true;
+        let startTime = null;
+        let expectedTime = null;
         
         // DOM Elements
         const timeDisplay = document.getElementById('timeDisplay');
@@ -528,12 +529,6 @@
         const notificationSetting = document.querySelector('.notification-setting');
         const notificationStatus = document.getElementById('notificationStatus');
         const toast = document.getElementById('toast');
-        
-        // Add placeholder for long break input on mobile
-        const longBreakInput = document.getElementById('longBreak');
-        if (longBreakInput) {
-            longBreakInput.placeholder = 'Long break duration (minutes)';
-        }
         
         // Progress ring setup
         const radius = 45;
@@ -572,7 +567,7 @@
             } else if (minutes < 60) {
                 return `${minutes} minutes`;
             }
-            return "1 hour"; // for any value >= 60
+            return "1 hour";
         }
         
         function updateModeButtonsState() {
@@ -585,7 +580,7 @@
         
         function updatePageTitle() {
             const modeText = mode === 'focus' ? 'Focus' : 'Break';
-            document.title = `${modeText} (${formatTime(timeLeft)}) - Pomodoro Timer`;
+            document.title = `${modeText} (${formatTime(timeLeft)})`;
         }
         
         async function checkNotificationSupport() {
@@ -755,6 +750,7 @@
                 const isLongBreak = currentCycle === settings.cyclesBeforeLongBreak;
                 const breakDuration = isLongBreak ? settings.longBreak : settings.breakTime;
                 timeLeft = breakDuration * 60;
+                expectedTime = timeLeft;
                 
                 sendNotification(
                     'Time for a Break',
@@ -767,6 +763,7 @@
                     isFirstStart = true;
                 }
                 timeLeft = settings.focusTime * 60;
+                expectedTime = timeLeft;
                 
                 sendNotification(
                     'Time to Focus',
@@ -774,38 +771,31 @@
                 );
             }
             
+            startTime = Date.now();
             updateModeButtons();
             updateDisplay();
             focusButton.classList.toggle('active');
             breakButton.classList.toggle('active');
         }
         
-        function timerTick(timestamp) {
-            if (!isRunning) {
-                lastTimestamp = 0;
-                return;
+        function timerTick() {
+            if (!isRunning) return;
+        
+            const currentTime = Date.now();
+            const deltaTime = Math.floor((currentTime - startTime) / 1000);
+            
+            // Calculate the actual time that should have passed
+            timeLeft = Math.max(0, expectedTime - deltaTime);
+            updateDisplay();
+        
+            if (timeLeft === 0) {
+                handleTimerComplete();
+                // Reset timing variables for next session
+                startTime = Date.now();
+                expectedTime = mode === 'focus' ? 
+                    settings.focusTime * 60 : 
+                    (currentCycle === settings.cyclesBeforeLongBreak ? settings.longBreak : settings.breakTime) * 60;
             }
-        
-            if (!lastTimestamp) {
-                lastTimestamp = timestamp;
-            }
-        
-            const elapsed = timestamp - lastTimestamp;
-        
-            if (elapsed >= 1000) {
-                // Calculate how many seconds have actually passed
-                const secondsPassed = Math.floor(elapsed / 1000);
-                timeLeft = Math.max(0, timeLeft - secondsPassed);
-                lastTimestamp = timestamp - (elapsed % 1000); // Keep remainder for smooth counting
-                
-                updateDisplay();
-        
-                if (timeLeft === 0) {
-                    handleTimerComplete();
-                }
-            }
-        
-            animationFrameId = requestAnimationFrame(timerTick);
         }
         
         // Event Listeners
@@ -815,10 +805,11 @@
             updateModeButtonsState();
             
             if (isRunning) {
-                lastTimestamp = 0;
-                animationFrameId = requestAnimationFrame(timerTick);
+                startTime = Date.now();
+                expectedTime = timeLeft;
+                timerInterval = setInterval(timerTick, 100); // Run more frequently for smoother updates
             } else {
-                cancelAnimationFrame(animationFrameId);
+                clearInterval(timerInterval);
             }
         });
         
@@ -827,6 +818,8 @@
             if (mode !== 'focus') {
                 mode = 'focus';
                 timeLeft = settings.focusTime * 60;
+                expectedTime = timeLeft;
+                startTime = Date.now();
                 focusButton.classList.add('active');
                 breakButton.classList.remove('active');
                 updateDisplay();
@@ -838,6 +831,8 @@
             if (mode !== 'break') {
                 mode = 'break';
                 timeLeft = settings.breakTime * 60;
+                expectedTime = timeLeft;
+                startTime = Date.now();
                 focusButton.classList.remove('active');
                 breakButton.classList.add('active');
                 updateDisplay();
@@ -845,12 +840,18 @@
         });
         
         settingsButton.addEventListener('click', () => {
-            document.getElementById('focusTime').value = settings.focusTime;
-            document.getElementById('breakTime').value = settings.breakTime;
-            document.getElementById('longBreak').value = settings.longBreak;
+            const focusInput = document.getElementById('focusTime');
+            const breakInput = document.getElementById('breakTime');
+            const longBreakInput = document.getElementById('longBreak');
+            const cyclesInput = document.getElementById('cyclesBeforeLongBreak');
+            
+            if (focusInput) focusInput.value = settings.focusTime;
+            if (breakInput) breakInput.value = settings.breakTime;
+            if (longBreakInput) longBreakInput.value = settings.longBreak;
+            if (cyclesInput) cyclesInput.value = settings.cyclesBeforeLongBreak;
+            
             document.getElementById('trackCycles').checked = settings.trackCycles;
             document.getElementById('enableNotifications').checked = settings.enableNotifications;
-            document.getElementById('cyclesBeforeLongBreak').value = settings.cyclesBeforeLongBreak;
             cycleSettings.classList.toggle('disabled', !settings.trackCycles);
             settingsModal.classList.add('visible');
         });
@@ -929,6 +930,9 @@
                         settings.longBreak * 60 : settings.breakTime * 60;
                 }
         
+                expectedTime = timeLeft;
+                startTime = Date.now();
+        
                 if (currentCycle > settings.cyclesBeforeLongBreak) {
                     currentCycle = 0;
                     isFirstStart = true;
@@ -942,27 +946,10 @@
             }
         });
         
-        // Handle visibility change
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                // Page is hidden
-                if (isRunning) {
-                    cancelAnimationFrame(animationFrameId);
-                    lastTimestamp = performance.now();
-                }
-            } else {
-                // Page is visible again
-                if (isRunning) {
-                    lastTimestamp = 0; // Reset timestamp to recalculate elapsed time
-                    animationFrameId = requestAnimationFrame(timerTick);
-                }
-            }
-        });
-        
         // Cleanup on page unload
         window.addEventListener('beforeunload', () => {
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
+            if (timerInterval) {
+                clearInterval(timerInterval);
             }
         });
         
@@ -973,6 +960,6 @@
         updateModeButtonsState();
         cycleSettings.classList.toggle('disabled', !settings.trackCycles);
         trackCyclesCheckbox.checked = settings.trackCycles;
-        </script>                                 
+    </script>                                            
 </body>
 </html>
